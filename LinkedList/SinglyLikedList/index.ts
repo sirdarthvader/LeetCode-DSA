@@ -64,4 +64,42 @@ class SinglyLinkedList<T> {
     }
     return currentHead;
   }
+
+  // UnShift => Add new node at the begining of the list
+  unshift(value: T) {
+    let newNode = new ListNode(value);
+    if (!this.head) {
+      this.head = newNode;
+      this.tail = this.head;
+    } else {
+      newNode.next = this.head;
+      this.head = newNode;
+    }
+    this.length++;
+    return this;
+  }
+
+  // GET => get the node at a specified index
+  get(index: number) {
+    if (index < 0 || index >= this.length) return null;
+    let counter = 0;
+    let current = this.head;
+
+    while (current && counter !== index) {
+      current = current?.next;
+      counter++;
+    }
+    return current;
+  }
+
+  // SET => Change the node at a given index
+  set(index: number, value: T) {
+    let currentNode = this.get(index);
+    if (currentNode) {
+      currentNode.value = value;
+      return currentNode;
+    } else {
+      return false;
+    }
+  }
 }

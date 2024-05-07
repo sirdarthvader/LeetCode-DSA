@@ -37,3 +37,11 @@
 - Initialise a pointer `currentHead` to the head of the list
 - Next, point `this.head` of the list as the pointers next value
 - Decrease the length of the list, if this results in length 0, set the tail as `null`
+
+### UnShift (Adding new Node at the start of the list)
+
+- Create new node
+- If the head is null, set the head and tail as the new node
+- else,set the new nodes net as the lists head
+- set the head as the new node
+- increment the length
