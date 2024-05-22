@@ -19,7 +19,7 @@ function twoSum(nums: number[], target: number) {
   const map = {};
 
   for (let i = 0; i < nums.length; i++) {
-    const complement = target - nums[i]; // 4,
+    const complement = target - nums[i]; // 3,
 
     if (map[complement] !== undefined) {
       return [map[complement], i]; // [2, 4]
