@@ -58,34 +58,36 @@
  * @param {number} depth
  * @return {Array}
  */
-var flat = function (arr, n) {
-  // Helper function to flatten the array up to a specific depth
-  function flatten(array, currentDepth) {
-    // If we've reached the specified depth, return the array as is
-    if (currentDepth >= n) {
-      return array;
+function flat(arr, flattenDepth) {
+  /**
+   * Algorithm:
+   * - initialise a new array to store the flattened array result
+   * - loop through the input array
+   *   - if the current element is an array, check
+   *     - if the current depth is less than the final depth, then flatten for the next depth (current + 1)
+   *     - else, add the current element as an array
+   *  - else, add the current element to the result array
+   * - return the result array
+   *
+   * Time Complexity: O(n), where n is the total number of elements in the input array
+   * Space Complexity: O(n), where n is the total number of elements in the input array
+   */
+
+  const result = [];
+  let currentDepth = 0;
+
+  for (const item of arr) {
+    if(Array.isArray(item) && ){ // if the current ele
+
+    } else {
+
     }
-
-    // Accumulate results in a new array
-    let result = [];
-
-    // Iterate through the array elements
-    for (let item of array) {
-      // If the item is an array and we haven't reached the specified depth, recurse
-      if (Array.isArray(item)) {
-        result = result.concat(flatten(item, currentDepth + 1));
-      } else {
-        // Otherwise, just add the item to the result
-        result.push(item);
-      }
-    }
-
-    return result;
   }
+}
 
-  // Start flattening from depth 0
-  return flatten(arr, 0);
-};
+function flatten(array, currentDepth, finalDepth){
+  
+}
 
 // Example usage:
 const arr = [1, [2, [3, [4, 5]]], 6];
