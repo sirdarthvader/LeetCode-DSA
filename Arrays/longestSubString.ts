@@ -2,7 +2,7 @@
 function lengthOfLongestSubstring(str: string): number {
   // abcabcbb -> incoming string
 
-  const alphaSet = new Set();
+  const alphaSet = new Set<string>();
 
   let left = 0;
   let best = 0;
