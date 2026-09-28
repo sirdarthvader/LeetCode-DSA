@@ -24,5 +24,5 @@ function lengthOfLongestSubstring(str: string): number {
     best = Math.max(best, right - left + 1);
   }
 
-  return alphaSet.size;
+  return best;
 }
