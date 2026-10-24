@@ -1,0 +1,736 @@
+<title>Memory Model · s03</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one reading column (~720px) of stacked "stations"; code and visualizers break out to full column width. Shared course tokens. */
+:root {
+  --bg: #F3F5F9; --surface: #FFFFFF; --surface-2: #E8ECF2; --ink: #131C2B; --muted: #566377; --rule: #D5DBE4;
+  --accent: #2A56E0; --accent-ink: #FFFFFF; --accent-soft: #DCE5FF;
+  --mark: #FFD447; --mark-ink: #1D1700; --good: #137D55; --good-soft: #D6F2E5; --bad: #B83A33; --bad-soft: #F8DEDC;
+  --code-bg: #101826; --code-ink: #DCE4EF; --code-dim: #7D8BA0; --code-hi: rgba(255, 212, 71, 0.16);
+  --c-kw: #FF9E64; --c-ty: #7DCFFF; --c-str: #A6E3A1; --c-num: #F9E2AF; --c-fn: #CBA6F7;
+  --display: 'Bricolage Grotesque', 'Avenir Next', system-ui, sans-serif;
+  --body: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0C121A; --surface: #141C27; --surface-2: #1C2633; --ink: #E6EBF2; --muted: #93A0B2; --rule: #273345;
+  --accent: #7C9CFF; --accent-ink: #0C121A; --accent-soft: #1E2A4D;
+  --mark: #F2C94C; --mark-ink: #1D1700; --good: #4CC38A; --good-soft: #143326; --bad: #F07A72; --bad-soft: #3A1B1A;
+  --code-bg: #0A0F17; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0C121A; --surface: #141C27; --surface-2: #1C2633; --ink: #E6EBF2; --muted: #93A0B2; --rule: #273345;
+  --accent: #7C9CFF; --accent-ink: #0C121A; --accent-soft: #1E2A4D;
+  --mark: #F2C94C; --mark-ink: #1D1700; --good: #4CC38A; --good-soft: #143326; --bad: #F07A72; --bad-soft: #3A1B1A;
+  --code-bg: #0A0F17; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--ink); font: 16px/1.6 var(--body); }
+.wrap { max-width: 760px; margin: 0 auto; padding-block: 40px 96px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 56px; }
+h1, h2, h3 { font-family: var(--display); line-height: 1.1; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(2.6rem, 7vw, 4rem); font-weight: 800; letter-spacing: -0.02em; }
+h2 { font-size: 1.75rem; font-weight: 700; letter-spacing: -0.01em; }
+h3 { font-size: 1.15rem; font-weight: 700; }
+p { margin: 0; max-width: 65ch; }
+code, kbd { font-family: var(--mono); font-size: 0.88em; background: var(--surface-2); padding: 0.1em 0.35em; border-radius: 4px; }
+section { display: grid; gap: 18px; }
+.eyebrow { font: 600 0.75rem/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.eyebrow .tag { background: var(--mark); color: var(--mark-ink); padding: 4px 8px; border-radius: 3px; }
+.lede { font-size: 1.15rem; color: var(--muted); }
+.muted { color: var(--muted); }
+button { font: inherit; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.btn { border: 1px solid var(--rule); background: var(--surface); color: var(--ink); padding: 8px 14px; border-radius: 8px; font-weight: 600; font-size: 0.92rem; }
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn.on { background: var(--accent-soft); border-color: var(--accent); }
+.btn:disabled { opacity: 0.45; cursor: default; }
+.btn.mono { font-family: var(--mono); font-size: 0.84rem; }
+
+/* mission checklist */
+.mission { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 20px; display: grid; gap: 14px; }
+.mission-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.meter { height: 8px; background: var(--surface-2); border-radius: 99px; overflow: hidden; }
+.meter > i { display: block; height: 100%; width: 0; background: var(--good); transition: width .3s; }
+.mission ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.mission label { display: flex; gap: 12px; align-items: flex-start; padding: 6px 4px; border-radius: 6px; cursor: pointer; }
+.mission label:hover { background: var(--surface-2); }
+.mission input { width: 18px; height: 18px; margin-top: 3px; accent-color: var(--good); flex: none; }
+.mission input:checked + span { color: var(--muted); text-decoration: line-through; }
+.mins { font: 0.78rem var(--mono); color: var(--muted); margin-left: auto; white-space: nowrap; padding-left: 8px; }
+
+/* code */
+pre { margin: 0; background: var(--code-bg); color: var(--code-ink); font: 0.86rem/1.65 var(--mono); padding: 16px 18px; border-radius: 10px; overflow-x: auto; }
+pre code { background: none; padding: 0; font-size: inherit; color: inherit; }
+.kw { color: var(--c-kw); } .ty { color: var(--c-ty); } .str { color: var(--c-str); } .num { color: var(--c-num); } .fn { color: var(--c-fn); } .com { color: var(--code-dim); font-style: italic; }
+
+/* panels shared */
+.viz { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 20px; display: grid; gap: 18px; }
+.viz-top { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.narr { font-size: 0.98rem; min-height: 4.8em; }
+.seg-label { font: 600 0.72rem/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+.cap { font: 600 0.72rem/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+
+/* memory stepper */
+pre.lines { padding: 12px 8px; }
+.ln { display: block; padding: 0 10px; border-radius: 4px; white-space: pre; }
+.ln .no { display: inline-block; width: 2ch; margin-right: 14px; text-align: right; color: var(--code-dim); user-select: none; }
+.ln.cur { background: var(--code-hi); box-shadow: inset 3px 0 0 var(--mark); }
+.mm { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 40px; }
+.mm-col { display: grid; gap: 10px; align-content: start; min-width: 0; }
+.mm-arrows { position: absolute; left: 0; top: 0; pointer-events: none; overflow: visible; }
+.mm-arrows path { fill: none; stroke: var(--accent); stroke-width: 2.2; }
+.mm-arrows polygon { fill: var(--accent); }
+.frame { border: 1px solid var(--rule); border-radius: 8px; background: var(--surface); padding: 8px 10px; display: grid; gap: 6px; }
+.frame.top { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.frame h5 { margin: 0; font: 600 0.76rem/1.2 var(--mono); color: var(--muted); }
+.frame.top h5 { color: var(--accent); }
+.var { display: flex; align-items: center; justify-content: space-between; gap: 8px; font: 0.88rem var(--mono); min-width: 0; }
+.slot { min-width: 52px; height: 30px; padding: 0 8px; border-radius: 6px; background: var(--surface-2); border: 1px solid var(--rule); display: grid; place-items: center; font: 600 0.88rem var(--mono); font-variant-numeric: tabular-nums; }
+.pin { display: block; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
+.obj { justify-self: start; border: 2px solid var(--accent); background: var(--accent-soft); border-radius: 8px; padding: 6px 8px; display: grid; gap: 5px; max-width: 100%; }
+.obj .ot { font: 600 0.7rem/1.2 var(--mono); letter-spacing: 0.04em; color: var(--muted); }
+.cells { display: flex; gap: 3px; flex-wrap: wrap; }
+.cells span { min-width: 30px; height: 30px; padding: 0 6px; display: grid; place-items: center; background: var(--surface); border: 1px solid var(--rule); border-radius: 4px; font: 600 0.88rem var(--mono); font-variant-numeric: tabular-nums; }
+.flash { animation: flash 1.1s ease-out; }
+@keyframes flash { from { background: var(--mark); color: var(--mark-ink); } }
+.obj.garbage { border-style: dashed; border-color: var(--muted); background: transparent; opacity: 0.55; }
+.empty { font: 0.82rem var(--mono); color: var(--muted); }
+.console { display: flex; gap: 10px; align-items: baseline; background: var(--code-bg); color: var(--code-ink); border-radius: 8px; padding: 10px 14px; font: 0.86rem var(--mono); }
+.console .d { color: var(--code-dim); }
+.stepper-foot { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+.stepno { font: 600 0.8rem var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.rule-box { border: 1px solid var(--accent); background: var(--accent-soft); border-radius: 10px; padding: 14px 16px; display: grid; gap: 6px; }
+
+/* quick-fire */
+.pcard { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 20px; display: grid; gap: 14px; }
+.pdots { display: flex; gap: 6px; flex-wrap: wrap; }
+.pdots button { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--rule); background: var(--surface); font: 600 0.7rem var(--mono); color: var(--muted); padding: 0; }
+.pdots button.cur { border-color: var(--accent); color: var(--ink); }
+.pdots button.right { background: var(--good-soft); border-color: var(--good); color: var(--ink); }
+.pdots button.wrong { background: var(--bad-soft); border-color: var(--bad); color: var(--ink); }
+.yn { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.yn .opt { text-align: center; font-weight: 600; padding: 14px 12px; }
+.pq { font-weight: 600; }
+
+/* grid toy */
+.gt { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 28px; align-items: center; }
+@media (max-width: 620px) { .gt { grid-template-columns: minmax(0, 1fr); } }
+.gcells { display: grid; grid-template-columns: repeat(3, 46px); gap: 5px; }
+.gcells button { width: 46px; height: 46px; border-radius: 6px; border: 1px solid var(--rule); background: var(--surface-2); font: 600 1rem var(--mono); color: var(--ink); padding: 0; }
+.gcells button:hover { border-color: var(--accent); }
+.gcells button.one { background: var(--mark); color: var(--mark-ink); border-color: var(--mark); }
+.mem { width: 100%; max-width: 340px; height: auto; display: block; }
+.mem .slot2 { fill: var(--surface-2); stroke: var(--rule); stroke-width: 1.5; }
+.mem .row { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2; }
+.mem .cell { fill: var(--surface); stroke: var(--rule); stroke-width: 1; }
+.mem .cell.one { fill: var(--mark); stroke: var(--mark); }
+.mem .arrow { stroke: var(--accent); stroke-width: 2.2; fill: none; }
+.mem .head { fill: var(--accent); }
+.mem text { font-family: var(--mono); font-size: 13px; fill: var(--ink); }
+.mem text.on-mark { fill: var(--mark-ink); }
+.mem .lbl { font-size: 11px; fill: var(--muted); letter-spacing: 0.08em; }
+.svg-wrap { overflow-x: auto; }
+
+/* run */
+.term { background: var(--code-bg); color: var(--code-ink); border-radius: 10px; padding: 14px 16px; font: 0.82rem/1.6 var(--mono); overflow-x: auto; white-space: pre; }
+.term .r { color: #FF8A80; } .term .g { color: #8BE9A8; } .term .d { color: var(--code-dim); }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 620px) { .two { grid-template-columns: 1fr; } }
+.two > * { min-width: 0; }
+
+/* hints */
+.hint-set { border: 1px solid var(--rule); border-radius: 10px; background: var(--surface); }
+.hint-set > header { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 16px; flex-wrap: wrap; }
+.hint-set > header code { font-size: 0.9rem; }
+.hint-list { list-style: none; margin: 0; padding: 0 16px; display: grid; gap: 8px; }
+.hint-list li { border-left: 3px solid var(--mark); padding: 4px 0 4px 12px; }
+.hint-list li:last-child { margin-bottom: 14px; }
+
+/* errors */
+details { border: 1px solid var(--rule); border-radius: 10px; background: var(--surface); padding: 0 16px; }
+details + details { margin-top: -10px; }
+summary { cursor: pointer; padding: 12px 0; font: 600 0.9rem var(--mono); overflow-wrap: anywhere; }
+details > div { padding-bottom: 14px; display: grid; gap: 8px; }
+
+/* quiz */
+.q { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 18px; display: grid; gap: 12px; }
+.q .opts { display: grid; gap: 8px; }
+.opt { text-align: left; border: 1px solid var(--rule); background: var(--surface); color: var(--ink); padding: 10px 12px; border-radius: 8px; font-size: 0.95rem; }
+.opt:hover:not(:disabled) { border-color: var(--accent); }
+.opt.right { background: var(--good-soft); border-color: var(--good); }
+.opt.wrong { background: var(--bad-soft); border-color: var(--bad); }
+.opt:disabled { cursor: default; }
+.explain { font-size: 0.92rem; color: var(--muted); }
+.score { font: 600 1rem var(--mono); }
+.deck-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+.finish { border-top: 1px solid var(--rule); padding-top: 28px; display: grid; gap: 12px; }
+a { color: var(--accent); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+
+<main class="wrap">
+
+<header style="display:grid; gap:16px">
+  <div class="eyebrow"><span class="tag">s03</span> Phase 0 · Java Ground · session 3 of 127</div>
+  <h1>Memory model</h1>
+  <p class="lede">In s02 you saw that an object variable holds an arrow. Today you'll see where both ends of the arrow live: the stack and the heap. Then you'll learn one rule that explains almost every "why did my array change?" bug you'll ever hit.</p>
+</header>
+
+<section aria-labelledby="m-h">
+  <div class="mission">
+    <div class="mission-head">
+      <h2 id="m-h" style="font-size:1.3rem">Today's mission</h2>
+      <span class="muted" id="m-count" style="font:0.85rem var(--mono)">0 / 7 · about 45 min</span>
+    </div>
+    <div class="meter" aria-hidden="true"><i id="m-bar"></i></div>
+    <ol id="mission">
+      <li><label><input type="checkbox" id="m1"><span>Warm-up redo: Two Sum is due today. Solve <a href="https://leetcode.com/problems/two-sum/" target="_blank" rel="noopener">LeetCode 1 ↗</a> in Java from a blank editor, then update it in the tracker</span><span class="mins">5 min</span></label></li>
+      <li><label><input type="checkbox" id="m2"><span>Step through both programs in the memory stepper, to the last line</span><span class="mins">8 min</span></label></li>
+      <li><label><input type="checkbox" id="m3"><span>"Does main see the 9?": all 8 cards</span><span class="mins">5 min</span></label></li>
+      <li><label><input type="checkbox" id="m4"><span>Break the grid: click a cell in both builds</span><span class="mins">3 min</span></label></li>
+      <li><label><input type="checkbox" id="m5"><span>Make <code>ArrayRefsTest</code> green</span><span class="mins">7 min</span></label></li>
+      <li><label><input type="checkbox" id="m6"><span>Make <code>CopiesTest</code> green</span><span class="mins">12 min</span></label></li>
+      <li><label><input type="checkbox" id="m7"><span>Lock in: quiz, 3 lines in <code>notes/s03.md</code>, tick s03 in the tracker</span><span class="mins">5 min</span></label></li>
+    </ol>
+  </div>
+</section>
+
+<section aria-labelledby="st-h">
+  <div class="eyebrow">Part 1</div>
+  <h2 id="st-h">The stack and the heap</h2>
+  <p>A running Java program keeps its memory in two places. The <b>stack</b> holds one <b>frame</b> per method that's currently running: a small scratch space for that method's local variables. A new frame goes on top when a method is called, and comes off when it returns. The <b>heap</b> is where every object lives: arrays, Strings, anything made with <code>new</code>. Variables on the stack point into the heap with arrows.</p>
+  <p>Press <b>Next</b> and watch both sides. Yellow cells are the ones that just changed.</p>
+  <div class="viz">
+    <div class="viz-top" role="group" aria-label="Program">
+      <span class="seg-label">Program</span>
+      <button class="btn mono" type="button" data-prog="0">Arrays</button>
+      <button class="btn mono" type="button" data-prog="1">ints &amp; Strings</button>
+    </div>
+    <pre class="lines"><code id="st-code"></code></pre>
+    <div class="mm" id="mm">
+      <div class="mm-col">
+        <div class="cap">Stack · newest frame on top</div>
+        <div class="mm-col" id="st-stack"></div>
+      </div>
+      <div class="mm-col">
+        <div class="cap">Heap · objects</div>
+        <div class="mm-col" id="st-heap"></div>
+      </div>
+      <svg class="mm-arrows" id="st-arrows" aria-hidden="true"></svg>
+    </div>
+    <div class="console" id="st-console" hidden><span class="d">console ›</span><span id="st-out"></span></div>
+    <p class="narr" id="st-narr" aria-live="polite"></p>
+    <div class="stepper-foot">
+      <div class="viz-top">
+        <button class="btn" id="st-back" type="button">← Back</button>
+        <button class="btn primary" id="st-next" type="button">Next →</button>
+        <button class="btn" id="st-reset" type="button">Restart</button>
+      </div>
+      <span class="stepno" id="st-no">Step 1 / 12</span>
+    </div>
+  </div>
+  <div class="rule-box">
+    <p><b>The rule.</b> Java always hands a method a <em>copy</em> of what's in the variable. For an <code>int</code> that's a copy of the number. For an array or any object, it's a copy of the arrow.</p>
+    <p>So a method that <b>follows the arrow and changes the object</b> (<code>arr[0] = 9</code>) changes the caller's object. A method that <b>points its arrow somewhere new</b> (<code>arr = new int[3]</code>) only changes its own copy.</p>
+  </div>
+  <p class="muted">This is exactly how JavaScript behaves too. If you've ever had a React bug where you pushed into an array from state and the screen didn't update, it's the same picture: one array, two arrows.</p>
+</section>
+
+<section aria-labelledby="qf-h">
+  <div class="eyebrow">Part 2</div>
+  <div class="deck-head">
+    <h2 id="qf-h">Does main see the 9?</h2>
+    <span class="score" id="qf-score">0 / 8</span>
+  </div>
+  <p>Quick-fire. For each card, picture the arrows, then decide. Two of these are designed to trick you.</p>
+  <div class="pdots" id="qf-dots" aria-label="Cards"></div>
+  <div class="pcard">
+    <div class="eyebrow" id="qf-num">Card 1 of 8</div>
+    <pre><code id="qf-code"></code></pre>
+    <p class="pq" id="qf-q"></p>
+    <div class="yn" id="qf-opts"></div>
+    <p class="explain" id="qf-why" hidden></p>
+    <div class="viz-top">
+      <button class="btn" id="qf-prev" type="button">← Back</button>
+      <button class="btn primary" id="qf-next" type="button">Next card →</button>
+    </div>
+  </div>
+</section>
+
+<section aria-labelledby="g-h">
+  <div class="eyebrow">Part 3</div>
+  <h2 id="g-h">Break the grid</h2>
+  <p>A 2D array in Java is an array of arrows, one per row. Here are two ways to build a 3 × 3 grid of zeros. They print the same. Click any cell to set it to 1 and watch what really happens.</p>
+  <div class="viz">
+    <div class="viz-top" role="group" aria-label="Build">
+      <span class="seg-label">Build</span>
+      <button class="btn mono" type="button" data-way="0">Way A: one row, reused</button>
+      <button class="btn mono" type="button" data-way="1">Way B: new int[3][3]</button>
+    </div>
+    <pre><code id="g-code"></code></pre>
+    <div class="gt">
+      <div>
+        <div class="cap">What you think you have</div>
+        <div class="gcells" id="g-cells" role="group" aria-label="Grid cells"></div>
+      </div>
+      <div class="svg-wrap" style="min-width:0">
+        <div class="cap">What's on the heap</div>
+        <svg class="mem" id="g-mem" viewBox="0 0 320 210" role="img" aria-label="The outer array's arrows and the row arrays they point to"></svg>
+      </div>
+    </div>
+    <p class="narr" id="g-narr" aria-live="polite"></p>
+    <div class="viz-top"><button class="btn" id="g-clear" type="button">Reset grid</button></div>
+  </div>
+  <p class="muted">JS has the very same trap: <code>Array(3).fill(Array(3).fill(0))</code> is Way A. It fills the outer array with three arrows to one row. <code>Array.from({length: 3}, () =&gt; Array(3).fill(0))</code> is Way B.</p>
+</section>
+
+<section aria-labelledby="r-h">
+  <div class="eyebrow">Part 4</div>
+  <h2 id="r-h">Make the tests green</h2>
+  <p>Your files are in <code>src/main/java/phase0/s03_memory/</code>. <code>ArrayRefs.java</code> changes the caller's array, so its methods return nothing. <code>Copies.java</code> needs new arrays, so its methods return one.</p>
+  <pre><code>mvn -q test -Dtest=ArrayRefsTest
+mvn -q test -Dtest=CopiesTest</code></pre>
+  <p>Some tests check <em>which array</em> you returned, not just the values in it. <code>assertNotSame(a, b)</code> fails if <code>a</code> and <code>b</code> are two arrows to the same array.</p>
+  <div class="two">
+    <div><div class="cap">A trap firing</div><div class="term"><span class="r">[ERROR] copyIsANewArray</span>
+  expected: not same
+   but was: &lt;[I@1ed1993a&gt;</div></div>
+    <div><div class="cap">After: green</div><div class="term"><span class="d">$ mvn -q test -Dtest=CopiesTest</span>
+<span class="d">$</span> <span class="g">▍</span>
+<span class="d">(no output = all passed)</span></div></div>
+  </div>
+</section>
+
+<section aria-labelledby="h-h">
+  <div class="eyebrow">Stuck?</div>
+  <h2 id="h-h">Hints, one at a time</h2>
+  <p>Give yourself 5 honest minutes on a method before opening a hint. Then take only one, and go try again.</p>
+  <div id="hints" style="display:grid; gap:12px"></div>
+</section>
+
+<section aria-labelledby="e-h">
+  <div class="eyebrow">Decoder</div>
+  <h2 id="e-h">Errors you'll probably meet today</h2>
+  <div>
+    <details><summary>expected: not same but was: &lt;[I@1ed1993a&gt;</summary><div><p>Your <code>copy</code> or <code>append</code> handed back the same array it was given. <code>return arr;</code> returns a copy of the arrow, not a copy of the array. Make a new one with <code>new int[...]</code> and fill it.</p><p class="muted"><code>[I@1ed1993a</code> is how Java prints an array: <code>[I</code> means "array of int", and the part after <code>@</code> is an id for that object. Two arrows to the same array print the same id.</p></div></details>
+  </div>
+  <div>
+    <details><summary>array contents differ at index [1][0], expected: &lt;0&gt; but was: &lt;1&gt;</summary><div><p>From <code>gridRowsAreIndependent</code>. The test set <code>g[0][0] = 1</code> and the 1 showed up in row 1 as well, so your rows are one shared array. That's Way A in Part 3. Each row needs its own <code>new</code>.</p></div></details>
+  </div>
+  <div>
+    <details><summary>java.lang.ArrayIndexOutOfBoundsException: Index 2 out of bounds for length 2</summary><div><p>A runtime crash, not a compile error. In <code>append</code> it usually means you wrote the new value into the <em>old</em> array: <code>arr[arr.length] = x</code>. The old array has no room for it. Write it into the new, longer one. In a loop, check you used <code>&lt;</code> and not <code>&lt;=</code>.</p></div></details>
+  </div>
+  <div>
+    <details><summary>error: incompatible types: unexpected return value</summary><div><p>You wrote <code>return arr;</code> inside a <code>void</code> method like <code>fill</code>. A void method returns nothing. It doesn't need to: the caller already has an arrow to the array you changed.</p></div></details>
+  </div>
+  <div>
+    <details><summary>error: missing return statement</summary><div><p><code>copy</code>, <code>append</code> and <code>grid</code> promise to return an array, and some path through your method doesn't. Add <code>return result;</code> at the end.</p></div></details>
+  </div>
+  <div>
+    <details><summary>System.out.println(nums) prints [I@6d06d69c</summary><div><p>Printing an array prints its id, not its contents. For debugging, use <code>System.out.println(Arrays.toString(nums));</code> with <code>import java.util.Arrays;</code> at the top. For a 2D array, <code>Arrays.deepToString(grid)</code>.</p></div></details>
+  </div>
+</section>
+
+<section aria-labelledby="q-h">
+  <div class="eyebrow">Lock in</div>
+  <div class="deck-head">
+    <h2 id="q-h">Four quick questions</h2>
+    <span class="score" id="score">0 / 4</span>
+  </div>
+  <div id="quiz" style="display:grid; gap:12px"></div>
+</section>
+
+<section class="finish">
+  <h3>Done with all 7?</h3>
+  <p>Write three lines in <code>notes/s03.md</code>: the idea, when to use it, what tripped you up. Then tick s03 in your <a href="https://claude.ai/artifact/2GrTM6DxjxduvdujM6XEed" target="_blank" rel="noopener">Roadmap Tracker ↗</a>. If a "but why?" question is still nagging you (when does the garbage collector actually run? why is it called a stack?), put it in <code>PARKING_LOT.md</code>.</p>
+  <p class="muted">There's no LeetCode problem for this session. You'll use today's rule constantly: every in-place array problem (s15) depends on "change through the arrow, the caller sees it", and <code>append</code> is a tiny version of what <code>ArrayList</code> does when it grows (s12).</p>
+  <p class="muted">Next up: s04, Classes &amp; objects. You'll write your own class, and see that <code>new YourClass()</code> lands on the heap exactly like the arrays did today.</p>
+</section>
+
+</main>
+
+<script>
+(function () {
+  const store = {
+    get(k) { try { return JSON.parse(localStorage.getItem('s03:' + k)); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem('s03:' + k, JSON.stringify(v)); } catch (e) {} }
+  };
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+
+  // ----- mission checklist (per-viewer convenience) -----
+  const boxes = [...document.querySelectorAll('#mission input')];
+  const saved = store.get('mission') || {};
+  boxes.forEach(b => { b.checked = !!saved[b.id]; b.addEventListener('change', updateMission); });
+  function updateMission() {
+    const st = {}; let n = 0;
+    boxes.forEach(b => { st[b.id] = b.checked; if (b.checked) n++; });
+    store.set('mission', st);
+    $('m-count').textContent = n === boxes.length ? boxes.length + ' / ' + boxes.length + ' · session complete' : n + ' / ' + boxes.length + ' · about 45 min';
+    $('m-bar').style.width = (n / boxes.length * 100) + '%';
+  }
+  updateMission();
+  function tick(id) { const b = $(id); if (b && !b.checked) { b.checked = true; updateMission(); } }
+
+  // ----- syntax colouring for small snippets -----
+  const H = (code) => esc(code)
+    .replace(/("[^"]*")/g, '<span class="str">$1</span>')
+    .replace(/\b(int|String|new)\b/g, '<span class="ty">$1</span>')
+    .replace(/\b(static|void|public|for|return)\b/g, '<span class="kw">$1</span>')
+    .replace(/\b(System\.out\.println)\b/g, '<span class="fn">$1</span>')
+    .replace(/(\/\/.*)$/gm, '<span class="com">$1</span>');
+
+  // ----- memory stepper -----
+  // A step is [line, frames (bottom to top), heap objects, narration, console output].
+  // A variable holding '@X' is an arrow to heap object X. A heap object is [id, label, cells, garbage].
+  const progs = [
+    { code: [
+        'static void fill(int[] arr, int value) {',
+        '    for (int i = 0; i < arr.length; i++) arr[i] = value;',
+        '}',
+        'static void reset(int[] arr) {',
+        '    arr = new int[3];',
+        '}',
+        'public static void main(String[] args) {',
+        '    int n = 7;',
+        '    int[] nums = {1, 2, 3};',
+        '    int[] alias = nums;',
+        '    alias[0] = 99;',
+        '    fill(nums, n);',
+        '    reset(nums);',
+        '    System.out.println(nums[0]);',
+        '}'],
+      steps: [
+        [7, [['main', []]], [], 'Java starts at main and gives it a frame on the stack: a scratch space for main\'s local variables. Empty so far.'],
+        [8, [['main', [['n', 7]]]], [], 'n is a primitive, so the 7 sits right inside main\'s frame. No arrows.'],
+        [9, [['main', [['n', 7], ['nums', '@A']]]], [['A', 'int[] · length 3', [1, 2, 3]]],
+          'The array is created on the heap. nums doesn\'t hold the array, only an arrow to it. JS arrays work the same way.'],
+        [10, [['main', [['n', 7], ['nums', '@A'], ['alias', '@A']]]], [['A', 'int[] · length 3', [1, 2, 3]]],
+          'alias = nums copies the arrow, not the array. Two arrows, one array. This is called aliasing.'],
+        [11, [['main', [['n', 7], ['nums', '@A'], ['alias', '@A']]]], [['A', 'int[] · length 3', [99, 2, 3]]],
+          'Writing through alias changes the one and only array. nums[0] is now 99 as well, because there\'s nothing else for nums to point at.'],
+        [1, [['main', [['n', 7], ['nums', '@A'], ['alias', '@A']]], ['fill', [['arr', '@A'], ['value', 7]]]], [['A', 'int[] · length 3', [99, 2, 3]]],
+          'Calling fill puts a new frame on top of main\'s. Java copies each argument into it: value gets a copy of 7, and arr gets a copy of the arrow.'],
+        [2, [['main', [['n', 7], ['nums', '@A'], ['alias', '@A']]], ['fill', [['arr', '@A'], ['value', 7]]]], [['A', 'int[] · length 3', [7, 7, 7]]],
+          'fill follows its arrow and writes into the array. It\'s the same array main points at.'],
+        [12, [['main', [['n', 7], ['nums', '@A'], ['alias', '@A']]]], [['A', 'int[] · length 3', [7, 7, 7]]],
+          'fill returns and its frame is thrown away, arr and value with it. The array survives, because it lives on the heap, not inside fill\'s frame.'],
+        [4, [['main', [['n', 7], ['nums', '@A'], ['alias', '@A']]], ['reset', [['arr', '@A']]]], [['A', 'int[] · length 3', [7, 7, 7]]],
+          'reset gets its own copy of the arrow, just like fill did.'],
+        [5, [['main', [['n', 7], ['nums', '@A'], ['alias', '@A']]], ['reset', [['arr', '@B']]]], [['A', 'int[] · length 3', [7, 7, 7]], ['B', 'int[] · length 3', [0, 0, 0]]],
+          'arr = new int[3] makes a brand-new array and points reset\'s own arrow at it. Look at main: nums still points at the old array. Reassigning a parameter never reaches the caller.'],
+        [13, [['main', [['n', 7], ['nums', '@A'], ['alias', '@A']]]], [['A', 'int[] · length 3', [7, 7, 7]], ['B', 'int[] · garbage', [0, 0, 0], true]],
+          'reset\'s frame is gone, and now nothing points at the new array. It\'s garbage. Java\'s garbage collector frees that memory for you later, like JS does.'],
+        [14, [['main', [['n', 7], ['nums', '@A'], ['alias', '@A']]]], [['A', 'int[] · length 3', [7, 7, 7]], ['B', 'int[] · garbage', [0, 0, 0], true]],
+          'Prints 7. fill changed the array through the arrow, so main sees it. reset only moved its own copy of the arrow, so main doesn\'t.', '7']
+      ] },
+    { code: [
+        'static void bump(int x) {',
+        '    x = x + 1;',
+        '}',
+        'static void shout(String s) {',
+        '    s = s.toUpperCase();',
+        '}',
+        'public static void main(String[] args) {',
+        '    int score = 5;',
+        '    bump(score);',
+        '    String name = "ada";',
+        '    shout(name);',
+        '    System.out.println(score + " " + name);',
+        '}'],
+      steps: [
+        [7, [['main', []]], [], 'A fresh run. main gets its frame.'],
+        [8, [['main', [['score', 5]]]], [], 'score holds 5, right inside the frame.'],
+        [1, [['main', [['score', 5]]], ['bump', [['x', 5]]]], [],
+          'bump\'s x gets a copy of 5. It\'s a separate box that happens to hold the same number. It is not linked to score.'],
+        [2, [['main', [['score', 5]]], ['bump', [['x', 6]]]], [], 'Only bump\'s copy changes.'],
+        [9, [['main', [['score', 5]]]], [],
+          'bump\'s frame is thrown away and the 6 goes with it. score is still 5. This is why a swap(int a, int b) method can\'t work in Java: it only swaps its copies.'],
+        [10, [['main', [['score', 5], ['name', '@S']]]], [['S', 'String', ['"ada"']]],
+          'A String is an object, so it goes on the heap and name holds an arrow to it.'],
+        [4, [['main', [['score', 5], ['name', '@S']]], ['shout', [['s', '@S']]]], [['S', 'String', ['"ada"']]],
+          'shout gets a copy of the arrow.'],
+        [5, [['main', [['score', 5], ['name', '@S']]], ['shout', [['s', '@T']]]], [['S', 'String', ['"ada"']], ['T', 'String', ['"ADA"']]],
+          'A String can never change once it\'s made: Strings are immutable. So toUpperCase builds a new String, and the = points shout\'s own arrow at it. name still points at "ada".'],
+        [11, [['main', [['score', 5], ['name', '@S']]]], [['S', 'String', ['"ada"']], ['T', 'String · garbage', ['"ADA"'], true]],
+          'Back in main. Nothing points at "ADA" any more, so it\'s garbage.'],
+        [12, [['main', [['score', 5], ['name', '@S']]]], [['S', 'String', ['"ada"']], ['T', 'String · garbage', ['"ADA"'], true]],
+          'Prints 5 ada. Java always passes a copy of what\'s in the variable: the value for primitives, the arrow for objects. This is called pass-by-value, and JS does exactly the same.', '5 ada']
+      ] }
+  ];
+  let prog = 0, at = 0;
+  const finished = new Set(store.get('stepper') || []);
+  const mm = $('mm'), svg = $('st-arrows');
+  function drawStep() {
+    const p = progs[prog], [line, frames, heap, say, out] = p.steps[at];
+    const prev = at > 0 ? p.steps[at - 1] : null;
+    document.querySelectorAll('[data-prog]').forEach(b => b.classList.toggle('on', +b.dataset.prog === prog));
+    $('st-code').innerHTML = p.code.map((l, i) => '<span class="ln' + (i + 1 === line ? ' cur' : '') + '"><span class="no">' + (i + 1) + '</span>' + H(l) + '</span>').join('');
+    const prevVar = {};
+    if (prev) prev[1].forEach(([fn, vars], fi) => vars.forEach(([n, v]) => { prevVar[fi + fn + n] = v; }));
+    $('st-stack').innerHTML = frames.slice().reverse().map(([fn, vars], ri) => {
+      const fi = frames.length - 1 - ri;
+      const rows = vars.length ? vars.map(([n, v]) => {
+        const changed = prev && prevVar[fi + fn + n] !== v ? ' flash' : '';
+        const inner = typeof v === 'string' && v[0] === '@' ? '<span class="pin" data-ref="' + v.slice(1) + '"></span>' : esc(v);
+        return '<div class="var"><span>' + esc(n) + '</span><span class="slot' + changed + '">' + inner + '</span></div>';
+      }).join('') : '<div class="empty">no variables yet</div>';
+      return '<div class="frame' + (ri === 0 ? ' top' : '') + '"><h5>' + esc(fn) + '()</h5>' + rows + '</div>';
+    }).join('');
+    const prevObj = {};
+    if (prev) prev[2].forEach(([id, , cells]) => { prevObj[id] = cells; });
+    $('st-heap').innerHTML = heap.length ? heap.map(([id, label, cells, dead]) => {
+      const old = prevObj[id];
+      const cs = cells.map((c, k) => '<span class="' + (old && old[k] !== c ? 'flash' : '') + '">' + esc(c) + '</span>').join('');
+      return '<div class="obj' + (dead ? ' garbage' : '') + '" data-id="' + id + '"><div class="ot">' + esc(label) + '</div><div class="cells">' + cs + '</div></div>';
+    }).join('') : '<div class="empty">nothing here yet</div>';
+    $('st-console').hidden = !out;
+    $('st-out').textContent = out || '';
+    $('st-narr').textContent = say;
+    $('st-no').textContent = 'Step ' + (at + 1) + ' / ' + p.steps.length;
+    $('st-back').disabled = at === 0;
+    $('st-next').disabled = at === p.steps.length - 1;
+    drawArrows();
+    if (at === p.steps.length - 1) { finished.add(prog); store.set('stepper', [...finished]); if (finished.size === progs.length) tick('m2'); }
+  }
+  function drawArrows() {
+    const box = mm.getBoundingClientRect();
+    svg.setAttribute('width', box.width); svg.setAttribute('height', box.height);
+    svg.setAttribute('viewBox', '0 0 ' + box.width + ' ' + box.height);
+    const hits = {};
+    let g = '';
+    mm.querySelectorAll('.pin').forEach(pin => {
+      const id = pin.dataset.ref, obj = mm.querySelector('.obj[data-id="' + id + '"]');
+      if (!obj) return;
+      const a = pin.getBoundingClientRect(), o = obj.getBoundingClientRect();
+      const k = hits[id] = (hits[id] || 0) + 1;
+      const x1 = a.left + a.width / 2 - box.left, y1 = a.top + a.height / 2 - box.top;
+      const x2 = o.left - box.left - 1, y2 = o.top - box.top + Math.min(14 + (k - 1) * 10, o.height - 8);
+      const bend = Math.max(24, (x2 - x1) / 2);
+      g += '<path d="M' + x1 + ' ' + y1 + ' C' + (x1 + bend) + ' ' + y1 + ' ' + (x2 - bend) + ' ' + y2 + ' ' + (x2 - 9) + ' ' + y2 + '"></path>';
+      g += '<polygon points="' + x2 + ',' + y2 + ' ' + (x2 - 10) + ',' + (y2 - 5) + ' ' + (x2 - 10) + ',' + (y2 + 5) + '"></polygon>';
+    });
+    svg.innerHTML = g;
+  }
+  document.querySelectorAll('[data-prog]').forEach(b => b.addEventListener('click', () => { prog = +b.dataset.prog; at = 0; drawStep(); }));
+  $('st-next').addEventListener('click', () => { if (at < progs[prog].steps.length - 1) { at++; drawStep(); } });
+  $('st-back').addEventListener('click', () => { if (at > 0) { at--; drawStep(); } });
+  $('st-reset').addEventListener('click', () => { at = 0; drawStep(); });
+  if ('ResizeObserver' in window) new ResizeObserver(drawArrows).observe(mm);
+  else window.addEventListener('resize', drawArrows);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(drawArrows);
+  drawStep();
+
+  // ----- quick-fire: does main see the 9? -----
+  const cards = [
+    ['static void f(int[] a) {\n    a[0] = 9;\n}\n\n// in main\nint[] nums = {1, 2};\nf(nums);', 'After the call, is nums[0] equal to 9?', true,
+      'Yes. f follows its copy of the arrow and writes into main\'s array.'],
+    ['static void f(int[] a) {\n    a = new int[] {9, 9};\n}\n\n// in main\nint[] nums = {1, 2};\nf(nums);', 'After the call, is nums[0] equal to 9?', false,
+      'No. f pointed its own arrow at a new array. nums in main still points at {1, 2}.'],
+    ['static void f(int x) {\n    x = 9;\n}\n\n// in main\nint n = 1;\nf(n);', 'After the call, is n equal to 9?', false,
+      'No. x is a copy of the number 1. Changing the copy leaves n alone.'],
+    ['static void f(int[] a) {\n    a = new int[2];\n    a[0] = 9;\n}\n\n// in main\nint[] nums = {1, 2};\nf(nums);', 'After the call, is nums[0] equal to 9?', false,
+      'No, and this is one of the tricks. By the time f writes the 9, its arrow already points at the new array, which only f can see. Order matters, as the next card shows.'],
+    ['static void f(int[] a) {\n    a[0] = 9;\n    a = new int[2];\n}\n\n// in main\nint[] nums = {1, 2};\nf(nums);', 'After the call, is nums[0] equal to 9?', true,
+      'Yes. The 9 is written first, into main\'s array. Moving the arrow afterwards doesn\'t undo a write that already happened.'],
+    ['static void f(int[][] g) {\n    g[1][0] = 9;\n}\n\n// in main\nint[][] grid = {{1}, {2}};\nf(grid);', 'After the call, is grid[1][0] equal to 9?', true,
+      'Yes. A 2D array is an array of arrows to rows. f follows two arrows and writes into main\'s row.'],
+    ['static void f(String s) {\n    s = s + "9";\n}\n\n// in main\nString t = "1";\nf(t);', 'After the call, is t equal to "19"?', false,
+      'No. Strings never change. s + "9" builds a new String and moves f\'s own arrow to it. t still points at "1".'],
+    ['// no method this time\nint[] a = {1, 2};\nint[] b = a;\nb[0] = 9;', 'Is a[0] equal to 9?', true,
+      'Yes. b = a copied the arrow, so a and b are two names for one array. This is the other trick: no method call needed for aliasing.']
+  ];
+  const qAns = store.get('quickfire') || {};
+  let qAt = 0;
+  const qDots = cards.map((c, i) => {
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = i + 1;
+    b.setAttribute('aria-label', 'Card ' + (i + 1));
+    b.addEventListener('click', () => { qAt = i; drawCard(); });
+    $('qf-dots').appendChild(b); return b;
+  });
+  function drawCard() {
+    const [code, q, yes, why] = cards[qAt], picked = qAns[qAt];
+    const has = picked === true || picked === false;
+    $('qf-num').textContent = 'Card ' + (qAt + 1) + ' of ' + cards.length;
+    $('qf-code').innerHTML = H(code);
+    $('qf-q').textContent = q;
+    const opts = $('qf-opts'); opts.innerHTML = '';
+    [[true, 'Yes'], [false, 'No']].forEach(([val, label]) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'opt'; b.textContent = label;
+      if (has) {
+        b.disabled = true;
+        if (val === yes) b.classList.add('right');
+        if (val === picked && picked !== yes) b.classList.add('wrong');
+      } else b.addEventListener('click', () => { qAns[qAt] = val; store.set('quickfire', qAns); drawCard(); });
+      opts.appendChild(b);
+    });
+    $('qf-why').hidden = !has;
+    if (has) $('qf-why').innerHTML = (picked === yes ? '<b style="color:var(--good)">Right.</b> ' : '<b style="color:var(--bad)">Look at the arrows again.</b> ') + esc(why);
+    $('qf-prev').disabled = qAt === 0;
+    $('qf-next').disabled = qAt === cards.length - 1;
+    let right = 0, n = 0;
+    qDots.forEach((d, i) => {
+      d.className = '';
+      const p = qAns[i];
+      if (p === true || p === false) { n++; if (p === cards[i][2]) { right++; d.classList.add('right'); } else d.classList.add('wrong'); }
+      if (i === qAt) d.classList.add('cur');
+    });
+    $('qf-score').textContent = right + ' / ' + cards.length;
+    if (n === cards.length) tick('m3');
+  }
+  $('qf-prev').addEventListener('click', () => { if (qAt > 0) { qAt--; drawCard(); } });
+  $('qf-next').addEventListener('click', () => { if (qAt < cards.length - 1) { qAt++; drawCard(); } });
+  drawCard();
+
+  // ----- break the grid -----
+  const ways = [
+    { code: 'int[] row = new int[3];\nint[][] g = new int[3][];\nfor (int r = 0; r < 3; r++) g[r] = row;   // every slot gets the same arrow', outer: [0, 0, 0] },
+    { code: 'int[][] g = new int[3][3];   // Java makes three separate rows', outer: [0, 1, 2] }
+  ];
+  let way = 0, rows;
+  const clicked = new Set(store.get('grid') || []);
+  function resetGrid() { rows = ways[way].outer.filter((v, i, a) => a.indexOf(v) === i).map(() => [0, 0, 0]); }
+  function arrowPath(x1, y1, x2, y2) {
+    const a = Math.atan2(y2 - y1, x2 - x1), L = 10, W = 5;
+    const bx = x2 - L * Math.cos(a), by = y2 - L * Math.sin(a);
+    return '<line class="arrow" x1="' + x1 + '" y1="' + y1 + '" x2="' + bx + '" y2="' + by + '"></line>' +
+      '<polygon class="head" points="' + x2 + ',' + y2 + ' ' + (bx + W * Math.sin(a)) + ',' + (by - W * Math.cos(a)) + ' ' + (bx - W * Math.sin(a)) + ',' + (by + W * Math.cos(a)) + '"></polygon>';
+  }
+  function drawGrid(msg) {
+    const w = ways[way];
+    document.querySelectorAll('[data-way]').forEach(b => b.classList.toggle('on', +b.dataset.way === way));
+    $('g-code').innerHTML = H(w.code);
+    const cellsEl = $('g-cells'); cellsEl.innerHTML = '';
+    for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) {
+      const v = rows[w.outer[r]][c];
+      const b = document.createElement('button'); b.type = 'button'; b.textContent = v;
+      if (v) b.classList.add('one');
+      b.setAttribute('aria-label', 'g[' + r + '][' + c + '] is ' + v);
+      b.addEventListener('click', () => setCell(r, c));
+      cellsEl.appendChild(b);
+    }
+    // outer array on the left, row arrays on the right
+    const slotY = [36, 96, 156], ox = 24, ow = 46, oh = 40;
+    let g = '<text class="lbl" x="' + ox + '" y="22">g</text><text class="lbl" x="170" y="22">ROW ARRAYS</text>';
+    slotY.forEach((y, r) => {
+      g += '<text class="lbl" x="4" y="' + (y + 25) + '">' + r + '</text>';
+      g += '<rect class="slot2" x="' + ox + '" y="' + y + '" width="' + ow + '" height="' + oh + '" rx="5"></rect>';
+      g += '<circle class="head" cx="' + (ox + ow - 12) + '" cy="' + (y + oh / 2) + '" r="5"></circle>';
+    });
+    const rowY = rows.length === 1 ? [96] : slotY, rx = 170, cw = 40;
+    rows.forEach((row, i) => {
+      g += '<rect class="row" x="' + (rx - 6) + '" y="' + (rowY[i] - 4) + '" width="' + (cw * 3 + 12) + '" height="' + (oh + 8) + '" rx="7"></rect>';
+      row.forEach((v, c) => {
+        g += '<rect class="cell' + (v ? ' one' : '') + '" x="' + (rx + c * cw) + '" y="' + rowY[i] + '" width="' + (cw - 4) + '" height="' + oh + '" rx="4"></rect>';
+        g += '<text' + (v ? ' class="on-mark"' : '') + ' x="' + (rx + c * cw + (cw - 4) / 2) + '" y="' + (rowY[i] + 25) + '" text-anchor="middle">' + v + '</text>';
+      });
+    });
+    w.outer.forEach((ri, r) => { g += arrowPath(ox + ow - 12, slotY[r] + oh / 2, rx - 7, rowY[ri] + oh / 2 + (rows.length === 1 ? (r - 1) * 10 : 0)); });
+    $('g-mem').innerHTML = g;
+    $('g-narr').textContent = msg || (way === 0
+      ? 'Three slots in g, three arrows, but only one row array on the heap. Click a cell.'
+      : 'Three slots in g, each with an arrow to its own row. Click a cell.');
+  }
+  function setCell(r, c) {
+    const row = rows[ways[way].outer[r]];
+    row[c] = row[c] ? 0 : 1;
+    clicked.add(way); store.set('grid', [...clicked]);
+    if (clicked.size === ways.length) tick('m4');
+    drawGrid(way === 0
+      ? 'You set only g[' + r + '][' + c + '], and the whole column changed. All three slots in g point at the same row, so g[0], g[1] and g[2] are one array with three names.'
+      : 'You set g[' + r + '][' + c + '] and only that cell changed. Each row is its own array. This is what grid() in Copies.java must build.');
+  }
+  document.querySelectorAll('[data-way]').forEach(b => b.addEventListener('click', () => { way = +b.dataset.way; resetGrid(); drawGrid(); }));
+  $('g-clear').addEventListener('click', () => { resetGrid(); drawGrid(); });
+  resetGrid(); drawGrid();
+
+  // ----- hints -----
+  const hintSets = [
+    ['fill', [
+      'Visit every index from 0 to <code>arr.length - 1</code> and write <code>value</code> into it. Arrays use <code>length</code> with no brackets; Strings use <code>length()</code>.',
+      'There\'s nothing to return. The method\'s return type is <code>void</code>, and the caller already holds an arrow to the array you\'re changing.'
+    ]],
+    ['swapEnds', [
+      'To swap two cups of coffee you need a third, empty cup. To swap two slots you need a temporary variable.',
+      'The last index is <code>arr.length - 1</code>. Save <code>arr[0]</code> in the temp, copy the last element into slot 0, then put the temp into the last slot.',
+      'If <code>{}</code> crashes with an out-of-bounds error, there\'s no slot 0 to read. Return early when the array is too short to swap.'
+    ]],
+    ['copy', [
+      '<code>new int[arr.length]</code> gives you a fresh array of zeros on the heap, the same size as the original. Now fill it.',
+      'If <code>copyIsANewArray</code> fails, you returned <code>arr</code> itself. That\'s an arrow to the same array, not a copy.',
+      'Once it\'s green, replace your loop with <code>return arr.clone();</code> and run the tests again. That\'s Java\'s built-in way to do this.'
+    ]],
+    ['append', [
+      'Java arrays can\'t grow. You can\'t add a slot to <code>arr</code>; you can only make a bigger array.',
+      'Make one with <code>arr.length + 1</code> slots, copy the old values across, and put <code>x</code> in the last slot.',
+      'The last slot of the new array is index <code>arr.length</code>. Write there in the <em>new</em> array, never the old one.'
+    ]],
+    ['grid', [
+      'Start with <code>new int[rows][cols]</code>. That already builds every row as its own array (Way B in Part 3), all zeros.',
+      'Two nested loops, one over rows and one over columns, set each cell to <code>value</code>.',
+      'If <code>gridRowsAreIndependent</code> fails, somewhere you made one row and put it into every slot. Make each row with its own <code>new</code>.'
+    ]]
+  ];
+  const hintsEl = $('hints');
+  const opened = store.get('hints') || {};
+  hintSets.forEach(([name, list]) => {
+    const box = document.createElement('div'); box.className = 'hint-set';
+    box.innerHTML = '<header><code></code><button class="btn" type="button"></button></header><ol class="hint-list"></ol>';
+    box.querySelector('code').textContent = name + '()';
+    const btn = box.querySelector('button'), ol = box.querySelector('ol');
+    let shown = opened[name] || 0;
+    const render = () => {
+      ol.innerHTML = '';
+      list.slice(0, shown).forEach(h => { const li = document.createElement('li'); li.innerHTML = h; ol.appendChild(li); });
+      btn.textContent = shown === 0 ? 'Show hint 1' : shown < list.length ? 'Next hint (' + (shown + 1) + '/' + list.length + ')' : 'All hints shown';
+      btn.disabled = shown >= list.length;
+    };
+    btn.addEventListener('click', () => { shown++; opened[name] = shown; store.set('hints', opened); render(); });
+    render(); hintsEl.appendChild(box);
+  });
+
+  // ----- quiz -----
+  const quiz = [
+    ['When you pass an array into a method, what does the method get?',
+      ['A full copy of the array', 'A copy of the arrow, pointing at the same array', 'The caller\'s variable itself, so it can reassign it', 'Nothing until it calls .get()'], 1,
+      'Java copies what\'s in the variable, and an array variable holds an arrow. So the method can change the array, but can\'t change where the caller\'s variable points.'],
+    ['<code>int[] a = {1, 2, 3}; int[] b = a; b[0] = 5;</code> What is <code>a[0]</code> now?',
+      ['1', '5', 'Compile error', '0'], 1,
+      '<code>b = a</code> copies the arrow. a and b are two names for one array, so the write shows up through both.'],
+    ['A method has <code>int count = 0;</code> and <code>int[] seen = new int[26];</code>. Where does each live?',
+      ['Both on the stack', 'Both on the heap', 'count is in the method\'s stack frame; the array is on the heap, and seen (in the frame) holds an arrow to it', 'count is on the heap; the array is on the stack'], 2,
+      'Local variables live in the frame. Anything made with <code>new</code> lives on the heap. When the method returns, the frame goes away; the array stays until nothing points at it.'],
+    ['<code>static void grow(int[] arr) { arr = new int[arr.length * 2]; }</code> Why does the caller\'s array stay the same size?',
+      ['Arrays are read-only inside methods', 'grow only moved its own copy of the arrow. It should return the new array instead, like append does', 'The garbage collector undoes it', 'You have to write this.arr'], 1,
+      'Reassigning a parameter only changes the method\'s copy. To hand back a new array, return it, and the caller writes <code>nums = grow(nums);</code>.']
+  ];
+  const quizEl = $('quiz');
+  const answered = store.get('quiz') || {};
+  let right = 0;
+  quiz.forEach(([q, opts, ans, why], qi) => {
+    const box = document.createElement('div'); box.className = 'q';
+    box.innerHTML = '<p><b>' + (qi + 1) + '.</b> ' + q + '</p><div class="opts"></div><p class="explain" hidden></p>';
+    const optsEl = box.querySelector('.opts'), ex = box.querySelector('.explain');
+    const buttons = opts.map((o, oi) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'opt'; b.textContent = o;
+      if (/^\d+$|error/i.test(o)) b.style.fontFamily = 'var(--mono)';
+      b.addEventListener('click', () => choose(oi)); optsEl.appendChild(b); return b;
+    });
+    function choose(oi, silent) {
+      buttons.forEach((b, k) => { b.disabled = true; if (k === ans) b.classList.add('right'); if (k === oi && oi !== ans) b.classList.add('wrong'); });
+      ex.hidden = false;
+      ex.innerHTML = (oi === ans ? '<b style="color:var(--good)">Right.</b> ' : '<b style="color:var(--bad)">Not quite.</b> ') + why;
+      if (oi === ans) right++;
+      if (!silent) { answered[qi] = oi; store.set('quiz', answered); }
+      $('score').textContent = right + ' / ' + quiz.length;
+    }
+    if (answered[qi] !== undefined && answered[qi] !== null) choose(answered[qi], true);
+    quizEl.appendChild(box);
+  });
+})();
+</script>
