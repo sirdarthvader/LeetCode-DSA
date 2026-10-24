@@ -1,0 +1,683 @@
+<title>Types · s02</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one reading column (~720px) of stacked "stations"; code and visualizers break out to full column width. Shared course tokens. */
+:root {
+  --bg: #F3F5F9; --surface: #FFFFFF; --surface-2: #E8ECF2; --ink: #131C2B; --muted: #566377; --rule: #D5DBE4;
+  --accent: #2A56E0; --accent-ink: #FFFFFF; --accent-soft: #DCE5FF;
+  --mark: #FFD447; --mark-ink: #1D1700; --good: #137D55; --good-soft: #D6F2E5; --bad: #B83A33; --bad-soft: #F8DEDC;
+  --code-bg: #101826; --code-ink: #DCE4EF; --code-dim: #7D8BA0; --c-kw: #FF9E64; --c-ty: #7DCFFF; --c-str: #A6E3A1; --c-num: #F9E2AF; --c-fn: #CBA6F7;
+  --display: 'Bricolage Grotesque', 'Avenir Next', system-ui, sans-serif;
+  --body: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0C121A; --surface: #141C27; --surface-2: #1C2633; --ink: #E6EBF2; --muted: #93A0B2; --rule: #273345;
+  --accent: #7C9CFF; --accent-ink: #0C121A; --accent-soft: #1E2A4D;
+  --mark: #F2C94C; --mark-ink: #1D1700; --good: #4CC38A; --good-soft: #143326; --bad: #F07A72; --bad-soft: #3A1B1A;
+  --code-bg: #0A0F17; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0C121A; --surface: #141C27; --surface-2: #1C2633; --ink: #E6EBF2; --muted: #93A0B2; --rule: #273345;
+  --accent: #7C9CFF; --accent-ink: #0C121A; --accent-soft: #1E2A4D;
+  --mark: #F2C94C; --mark-ink: #1D1700; --good: #4CC38A; --good-soft: #143326; --bad: #F07A72; --bad-soft: #3A1B1A;
+  --code-bg: #0A0F17; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 16px/1.6 var(--body); }
+.wrap { max-width: 760px; margin: 0 auto; padding-block: 40px 96px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 56px; }
+h1, h2, h3 { font-family: var(--display); line-height: 1.1; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(2.6rem, 7vw, 4rem); font-weight: 800; letter-spacing: -0.02em; }
+h2 { font-size: 1.75rem; font-weight: 700; letter-spacing: -0.01em; }
+h3 { font-size: 1.15rem; font-weight: 700; }
+p { margin: 0; max-width: 65ch; }
+code, kbd { font-family: var(--mono); font-size: 0.88em; background: var(--surface-2); padding: 0.1em 0.35em; border-radius: 4px; }
+section { display: grid; gap: 18px; }
+.eyebrow { font: 600 0.75rem/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.eyebrow .tag { background: var(--mark); color: var(--mark-ink); padding: 4px 8px; border-radius: 3px; }
+.lede { font-size: 1.15rem; color: var(--muted); }
+.muted { color: var(--muted); }
+button { font: inherit; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.btn { border: 1px solid var(--rule); background: var(--surface); color: var(--ink); padding: 8px 14px; border-radius: 8px; font-weight: 600; font-size: 0.92rem; }
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn.on { background: var(--accent-soft); border-color: var(--accent); }
+.btn:disabled { opacity: 0.45; cursor: default; }
+.btn.mono { font-family: var(--mono); font-size: 0.84rem; }
+
+/* mission checklist */
+.mission { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 20px; display: grid; gap: 14px; }
+.mission-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.meter { height: 8px; background: var(--surface-2); border-radius: 99px; overflow: hidden; }
+.meter > i { display: block; height: 100%; width: 0; background: var(--good); transition: width .3s; }
+.mission ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.mission label { display: flex; gap: 12px; align-items: flex-start; padding: 6px 4px; border-radius: 6px; cursor: pointer; }
+.mission label:hover { background: var(--surface-2); }
+.mission input { width: 18px; height: 18px; margin-top: 3px; accent-color: var(--good); flex: none; }
+.mission input:checked + span { color: var(--muted); text-decoration: line-through; }
+.mins { font: 0.78rem var(--mono); color: var(--muted); margin-left: auto; white-space: nowrap; padding-left: 8px; }
+
+/* code */
+pre { margin: 0; background: var(--code-bg); color: var(--code-ink); font: 0.86rem/1.65 var(--mono); padding: 16px 18px; border-radius: 10px; overflow-x: auto; }
+pre code { background: none; padding: 0; font-size: inherit; color: inherit; }
+.kw { color: var(--c-kw); } .ty { color: var(--c-ty); } .str { color: var(--c-str); } .num { color: var(--c-num); } .fn { color: var(--c-fn); } .com { color: var(--code-dim); font-style: italic; }
+
+/* type shelf */
+.scroll { overflow-x: auto; border: 1px solid var(--rule); border-radius: 12px; background: var(--surface); }
+.shelf { width: 100%; border-collapse: collapse; font-size: 0.9rem; min-width: 600px; }
+.shelf th, .shelf td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--rule); vertical-align: middle; }
+.shelf tr:last-child td { border-bottom: 0; }
+.shelf th { font: 600 0.7rem/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.shelf td:first-child { font: 600 0.95rem var(--mono); color: var(--accent); white-space: nowrap; }
+.shelf .rng { font: 0.82rem var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.shelf tr.star td { background: var(--accent-soft); }
+.bits { display: grid; gap: 4px; min-width: 110px; }
+.bits i { display: block; height: 10px; border-radius: 3px; background: var(--accent); }
+.bits span { font: 0.72rem var(--mono); color: var(--muted); }
+
+/* panels shared */
+.viz { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 20px; display: grid; gap: 18px; }
+.viz-top { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.viz-grid { display: grid; grid-template-columns: 280px 1fr; gap: 20px; align-items: center; }
+@media (max-width: 620px) { .viz-grid { grid-template-columns: 1fr; } }
+.viz-grid > * { min-width: 0; }
+.panel { border: 1px solid var(--rule); border-radius: 10px; padding: 12px 14px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.panel h4 { margin: 0; font: 600 0.72rem/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.narr { font-size: 0.98rem; min-height: 3.2em; }
+.seg-label { font: 600 0.72rem/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+
+/* odometer ring */
+.ring { width: 100%; max-width: 280px; justify-self: center; display: block; }
+.ring .half-neg { fill: none; stroke: var(--bad-soft); stroke-width: 18; }
+.ring .half-pos { fill: none; stroke: var(--good-soft); stroke-width: 18; }
+.ring .seam { stroke: var(--mark); stroke-width: 5; }
+.ring text { font-family: var(--mono); font-size: 12px; fill: var(--muted); }
+.ring .big { font-size: 15px; font-weight: 600; fill: var(--ink); }
+.ring .dot { fill: var(--accent); stroke: var(--surface); stroke-width: 3; }
+.ring #dotg { transform-box: view-box; transform-origin: 140px 140px; transition: transform .55s cubic-bezier(.3,.7,.3,1); }
+.readout { font: 600 1.25rem/1.3 var(--mono); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.readout.bad { color: var(--bad); }
+.flag { justify-self: start; font: 600 0.72rem/1 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; padding: 5px 8px; border-radius: 4px; background: var(--good-soft); color: var(--good); }
+.flag.bad { background: var(--bad-soft); color: var(--bad); }
+
+/* predict deck */
+.pcard { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 20px; display: grid; gap: 14px; }
+.pdots { display: flex; gap: 6px; flex-wrap: wrap; }
+.pdots button { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--rule); background: var(--surface); font: 600 0.7rem var(--mono); color: var(--muted); padding: 0; }
+.pdots button.cur { border-color: var(--accent); color: var(--ink); }
+.pdots button.right { background: var(--good-soft); border-color: var(--good); color: var(--ink); }
+.pdots button.wrong { background: var(--bad-soft); border-color: var(--bad); color: var(--ink); }
+.popts { display: flex; gap: 8px; flex-wrap: wrap; }
+.popts .opt { font-family: var(--mono); font-size: 0.9rem; flex: 1 1 150px; }
+
+/* arrow diagram */
+.mem { width: 100%; height: auto; display: block; }
+.mem .slot { fill: var(--surface-2); stroke: var(--rule); stroke-width: 1.5; }
+.mem .obj { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2; }
+.mem .arrow { stroke: var(--accent); stroke-width: 2.5; fill: none; }
+.mem .head { fill: var(--accent); }
+.mem text { font-family: var(--mono); font-size: 14px; fill: var(--ink); }
+.mem .lbl { font-size: 11px; fill: var(--muted); letter-spacing: 0.08em; }
+.mem .note { font-size: 12px; fill: var(--muted); }
+.verdicts { display: flex; gap: 10px; flex-wrap: wrap; }
+.verdict { font: 600 0.9rem var(--mono); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--rule); }
+.verdict.t { background: var(--good-soft); border-color: var(--good); }
+.verdict.f { background: var(--bad-soft); border-color: var(--bad); }
+.svg-wrap { overflow-x: auto; }
+
+/* run */
+.term { background: var(--code-bg); color: var(--code-ink); border-radius: 10px; padding: 14px 16px; font: 0.82rem/1.6 var(--mono); overflow-x: auto; white-space: pre; }
+.term .r { color: #FF8A80; } .term .g { color: #8BE9A8; } .term .d { color: var(--code-dim); }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 620px) { .two { grid-template-columns: 1fr; } }
+.two > * { min-width: 0; }
+.cap { font: 600 0.72rem/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+
+/* hints */
+.hint-set { border: 1px solid var(--rule); border-radius: 10px; background: var(--surface); }
+.hint-set > header { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 16px; flex-wrap: wrap; }
+.hint-set > header code { font-size: 0.9rem; }
+.hint-list { list-style: none; margin: 0; padding: 0 16px; display: grid; gap: 8px; }
+.hint-list li { border-left: 3px solid var(--mark); padding: 4px 0 4px 12px; }
+.hint-list li:last-child { margin-bottom: 14px; }
+.hint-list pre { margin-top: 8px; font-size: 0.8rem; }
+
+/* errors */
+details { border: 1px solid var(--rule); border-radius: 10px; background: var(--surface); padding: 0 16px; }
+details + details { margin-top: -10px; }
+summary { cursor: pointer; padding: 12px 0; font: 600 0.9rem var(--mono); }
+details > div { padding-bottom: 14px; display: grid; gap: 8px; }
+
+/* quiz */
+.q { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 18px; display: grid; gap: 12px; }
+.q .opts { display: grid; gap: 8px; }
+.opt { text-align: left; border: 1px solid var(--rule); background: var(--surface); color: var(--ink); padding: 10px 12px; border-radius: 8px; font-size: 0.95rem; }
+.opt:hover:not(:disabled) { border-color: var(--accent); }
+.opt.right { background: var(--good-soft); border-color: var(--good); }
+.opt.wrong { background: var(--bad-soft); border-color: var(--bad); }
+.opt:disabled { cursor: default; }
+.explain { font-size: 0.92rem; color: var(--muted); }
+.score { font: 600 1rem var(--mono); }
+.deck-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+.finish { border-top: 1px solid var(--rule); padding-top: 28px; display: grid; gap: 12px; }
+a { color: var(--accent); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<main class="wrap">
+
+<header style="display:grid; gap:16px">
+  <div class="eyebrow"><span class="tag">s02</span> Phase 0 · Java Ground · session 2 of 127</div>
+  <h1>Types</h1>
+  <p class="lede">In JavaScript every number is the same kind of thing. In Java every value lives in a box of a fixed size, and you pick the box. Today: what the boxes are, what happens when a number outgrows its box, and why <code>==</code> on Strings seems to work right up until it doesn't.</p>
+</header>
+
+<section aria-labelledby="m-h">
+  <div class="mission">
+    <div class="mission-head">
+      <h2 id="m-h" style="font-size:1.3rem">Today's mission</h2>
+      <span class="muted" id="m-count" style="font:0.85rem var(--mono)">0 / 8 · about 45 min</span>
+    </div>
+    <div class="meter" aria-hidden="true"><i id="m-bar"></i></div>
+    <ol id="mission">
+      <li><label><input type="checkbox" id="m1"><span>Warm-up redo: Two Sum is due today. Solve <a href="https://leetcode.com/problems/two-sum/" target="_blank" rel="noopener">LeetCode 1 ↗</a> in Java from a blank editor, then update it in the tracker</span><span class="mins">5 min</span></label></li>
+      <li><label><input type="checkbox" id="m2"><span>Read the type shelf</span><span class="mins">3 min</span></label></li>
+      <li><label><input type="checkbox" id="m3"><span>Overflow an <code>int</code> on the odometer</span><span class="mins">5 min</span></label></li>
+      <li><label><input type="checkbox" id="m4"><span>Predict the output: all 12 cards</span><span class="mins">6 min</span></label></li>
+      <li><label><input type="checkbox" id="m5"><span>Click all 5 scenarios in the arrow diagram</span><span class="mins">3 min</span></label></li>
+      <li><label><input type="checkbox" id="m6"><span>Make <code>NumberTypesTest</code> green</span><span class="mins">10 min</span></label></li>
+      <li><label><input type="checkbox" id="m7"><span>Make <code>EqualityTest</code> green</span><span class="mins">8 min</span></label></li>
+      <li><label><input type="checkbox" id="m8"><span>Lock in: quiz, 3 lines in <code>notes/s02.md</code>, tick s02 in the tracker</span><span class="mins">5 min</span></label></li>
+    </ol>
+  </div>
+</section>
+
+<section aria-labelledby="t-h">
+  <div class="eyebrow">Part 1</div>
+  <h2 id="t-h">The type shelf</h2>
+  <p>These eight are Java's <b>primitives</b>: raw values with no methods, that can never be <code>null</code>. Each one has a fixed number of bits, and the bits decide how big a number fits. You'll use the two highlighted rows for 90% of this course.</p>
+  <div class="scroll">
+    <table class="shelf">
+      <thead><tr><th>Type</th><th>Size</th><th>Holds</th><th>JS cousin</th><th>Object version</th></tr></thead>
+      <tbody id="shelf"></tbody>
+    </table>
+  </div>
+  <p>Every primitive has an <b>object version</b> (a "wrapper") in the last column. <code>Integer</code> is an object that holds one <code>int</code>. Collections like <code>HashMap</code> can only store objects, which is why Two Sum used <code>Map&lt;Integer, Integer&gt;</code>. Java converts between the two for you, quietly. That quiet conversion is called <b>autoboxing</b>, and it's behind one of today's traps.</p>
+  <p class="muted">JS has exactly one number type, a 64-bit <code>double</code>. That's why <code>0.1 + 0.2</code> is off in both languages, and why JS never overflows the way Java does.</p>
+</section>
+
+<section aria-labelledby="o-h">
+  <div class="eyebrow">Part 2</div>
+  <h2 id="o-h">The overflow odometer</h2>
+  <p>Picture an int's numbers bent into a ring. Count up from 0 through the positives, and right after the biggest one, <code>MAX</code>, you land on the most negative one, <code>MIN</code>. Java doesn't stop you or throw an error. It just keeps going round. Pick a type, push the number past the yellow seam, and compare Java's answer with real maths.</p>
+  <div class="viz">
+    <div class="viz-top" role="group" aria-label="Type">
+      <span class="seg-label">Type</span>
+      <button class="btn mono" type="button" data-type="byte">byte</button>
+      <button class="btn mono" type="button" data-type="short">short</button>
+      <button class="btn mono" type="button" data-type="int">int</button>
+      <button class="btn mono" type="button" data-type="long">long</button>
+    </div>
+    <div class="viz-grid">
+      <svg class="ring" viewBox="0 0 280 280" role="img" aria-label="Number ring showing where the value sits in its type's range">
+        <path class="half-neg" d="M140 30 A110 110 0 0 1 140 250"></path>
+        <path class="half-pos" d="M140 250 A110 110 0 0 1 140 30"></path>
+        <line class="seam" x1="140" y1="12" x2="140" y2="48"></line>
+        <text x="122" y="14" text-anchor="end">MAX</text>
+        <text x="158" y="14">MIN</text>
+        <text x="140" y="274" text-anchor="middle">0</text>
+        <text x="192" y="200" text-anchor="middle">negatives</text>
+        <text x="88" y="200" text-anchor="middle">positives</text>
+        <text class="big" id="ring-type" x="140" y="136" text-anchor="middle">int</text>
+        <text id="ring-bits" x="140" y="156" text-anchor="middle">32 bits</text>
+        <g id="dotg"><circle class="dot" cx="140" cy="30" r="11"></circle></g>
+      </svg>
+      <div style="display:grid; gap:12px">
+        <div class="panel">
+          <h4 id="java-lbl">Java says (int)</h4>
+          <div class="readout" id="java-val">0</div>
+        </div>
+        <div class="panel">
+          <h4>Real maths</h4>
+          <div class="readout" id="real-val">0</div>
+        </div>
+        <span class="flag" id="flag">fits</span>
+      </div>
+    </div>
+    <div class="viz-top" role="group" aria-label="Change the number">
+      <span class="seg-label">Do</span>
+      <button class="btn mono" type="button" data-op="+1">+ 1</button>
+      <button class="btn mono" type="button" data-op="+100">+ 100</button>
+      <button class="btn mono" type="button" data-op="+1e9">+ 1,000,000,000</button>
+      <button class="btn mono" type="button" data-op="x2">× 2</button>
+      <button class="btn mono" type="button" data-op="-1">− 1</button>
+    </div>
+    <div class="viz-top" role="group" aria-label="Start from">
+      <span class="seg-label">Start at</span>
+      <button class="btn" type="button" data-set="zero">0</button>
+      <button class="btn" type="button" data-set="nearmax">MAX − 2</button>
+      <button class="btn" type="button" data-set="min">MIN</button>
+    </div>
+    <p class="narr" id="o-narr" aria-live="polite"></p>
+  </div>
+  <p class="muted">Try this: pick <b>int</b>, start at MAX − 2, and press + 1 three times. Then switch to <b>long</b> and do the same with + 1,000,000,000. A long's ring is so big you'd need billions of presses to reach its seam.</p>
+</section>
+
+<section aria-labelledby="pr-h">
+  <div class="eyebrow">Part 3</div>
+  <div class="deck-head">
+    <h2 id="pr-h">Predict the output</h2>
+    <span class="score" id="p-score">0 / 12</span>
+  </div>
+  <p>Each card is a tiny Java program. Decide what it prints <em>before</em> you click. A few of these surprise people who've written Java for years.</p>
+  <div class="pdots" id="pdots" aria-label="Cards"></div>
+  <div class="pcard">
+    <div class="eyebrow" id="p-num">Card 1 of 12</div>
+    <pre><code id="p-code"></code></pre>
+    <div class="popts" id="p-opts"></div>
+    <p class="explain" id="p-why" hidden></p>
+    <div class="viz-top">
+      <button class="btn" id="p-prev" type="button">← Back</button>
+      <button class="btn primary" id="p-next" type="button">Next card →</button>
+    </div>
+  </div>
+</section>
+
+<section aria-labelledby="ar-h">
+  <div class="eyebrow">Part 4</div>
+  <h2 id="ar-h">What <code>==</code> actually compares</h2>
+  <p>A primitive variable holds the value itself. An <b>object</b> variable (String, Integer, any class) holds an <em>arrow</em> pointing at an object somewhere else in memory. <code>==</code> compares what's in the variable. For objects, that means it asks "do both arrows point at the same object?" and never looks at the text. <code>.equals()</code> walks the arrows and compares what's inside.</p>
+  <div class="viz">
+    <div class="viz-top" role="group" aria-label="Scenario" id="scen"></div>
+    <pre><code id="scen-code"></code></pre>
+    <div class="svg-wrap"><svg class="mem" id="mem" viewBox="0 0 560 210" role="img" aria-label="Variables and the objects they point to"></svg></div>
+    <div class="verdicts" id="verdicts"></div>
+    <p class="narr" id="scen-narr" aria-live="polite"></p>
+  </div>
+  <p><b>The rule:</b> use <code>==</code> for primitives (<code>int</code>, <code>char</code>, <code>boolean</code>…). Use <code>.equals()</code> for everything else. String literals and small Integers <em>happen</em> to share objects, so <code>==</code> often passes in quick experiments and fails later on real data. That's the betrayal. s03 draws the full memory picture.</p>
+</section>
+
+<section aria-labelledby="r-h">
+  <div class="eyebrow">Part 5</div>
+  <h2 id="r-h">Make the tests green</h2>
+  <p>Your files are in <code>src/main/java/phase0/s02_types/</code>: <code>NumberTypes.java</code> and <code>Equality.java</code>. Same loop as last time:</p>
+  <pre><code>mvn -q test -Dtest=NumberTypesTest
+mvn -q test -Dtest=EqualityTest</code></pre>
+  <p>The tests are written to catch the traps from Parts 2–4. If your first try "obviously works" and a test still fails, that's the lesson landing. Read the failure message: it tells you the expected value and the one you returned.</p>
+  <div class="two">
+    <div><div class="cap">A trap firing</div><div class="term"><span class="r">[ERROR] averageOfHugeNumbers</span>
+  expected: &lt;2147483647&gt;
+   but was: &lt;-1&gt;</div></div>
+    <div><div class="cap">After: green</div><div class="term"><span class="d">$ mvn -q test -Dtest=NumberTypesTest</span>
+<span class="d">$</span> <span class="g">▍</span>
+<span class="d">(no output = all passed)</span></div></div>
+  </div>
+</section>
+
+<section aria-labelledby="h-h">
+  <div class="eyebrow">Stuck?</div>
+  <h2 id="h-h">Hints, one at a time</h2>
+  <p>Give yourself 5 honest minutes on a method before opening a hint. Then take only one, and go try again.</p>
+  <div id="hints" style="display:grid; gap:12px"></div>
+</section>
+
+<section aria-labelledby="e-h">
+  <div class="eyebrow">Decoder</div>
+  <h2 id="e-h">Errors you'll probably meet today</h2>
+  <div>
+    <details><summary>error: incompatible types: possible lossy conversion from long to int</summary><div><p>You're putting a <code>long</code> into an <code>int</code> box. Java refuses because the value might not fit. If you've made sure it fits (like an average of two ints), say so with a cast: <code>(int) someLong</code>. A cast is you promising the compiler "I checked".</p></div></details>
+  </div>
+  <div>
+    <details><summary>error: integer number too large</summary><div><p>A plain number in your code is an <code>int</code>, so <code>2432902008176640000</code> doesn't fit. Add an <code>L</code> to make it a long: <code>2432902008176640000L</code>. Underscores are allowed for readability: <code>2_432_902_008_176_640_000L</code>.</p></div></details>
+  </div>
+  <div>
+    <details><summary>error: incompatible types: String cannot be converted to char</summary><div><p>Double quotes make a <code>String</code>, single quotes make a <code>char</code>. <code>'a'</code> is one character. <code>"a"</code> is a String that happens to be one character long. In JS they're the same; in Java they're different types.</p></div></details>
+  </div>
+  <div>
+    <details><summary>error: bad operand types for binary operator '=='</summary><div><p>Usually <code>s.charAt(i) == "a"</code>: a char on the left, a String on the right. Java won't compare different types. Use single quotes: <code>s.charAt(i) == 'a'</code>.</p></div></details>
+  </div>
+  <div>
+    <details><summary>test failure: expected: &lt;2&gt; but was: &lt;0&gt;</summary><div><p>Not a compiler error, a logic one. In <code>countMatches</code> this almost always means you compared Strings with <code>==</code>. The test builds its Strings at runtime, so the arrows point at different objects. Switch to <code>.equals()</code>.</p></div></details>
+  </div>
+</section>
+
+<section aria-labelledby="q-h">
+  <div class="eyebrow">Lock in</div>
+  <div class="deck-head">
+    <h2 id="q-h">Four quick questions</h2>
+    <span class="score" id="score">0 / 4</span>
+  </div>
+  <div id="quiz" style="display:grid; gap:12px"></div>
+</section>
+
+<section class="finish">
+  <h3>Done with all 8?</h3>
+  <p>Write three lines in <code>notes/s02.md</code>: the idea, when to use it, what tripped you up. Then tick s02 in your <a href="https://claude.ai/artifact/2GrTM6DxjxduvdujM6XEed" target="_blank" rel="noopener">Roadmap Tracker ↗</a>. If a "but why?" question is still nagging you (how are negative numbers stored in bits? why does Java cache only −128 to 127?), put it in <code>PARKING_LOT.md</code>.</p>
+  <p class="muted">There's no LeetCode problem for this session. You'll meet these traps inside real problems soon: the overflow-safe midpoint from <code>average</code> comes back in binary search (s28).</p>
+  <p class="muted">Next up: s03, Memory model. The arrows from Part 4 get a full picture: the stack, the heap, and what really happens when you pass an array into a method.</p>
+</section>
+
+</main>
+
+<script>
+(function () {
+  const store = {
+    get(k) { try { return JSON.parse(localStorage.getItem('s02:' + k)); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem('s02:' + k, JSON.stringify(v)); } catch (e) {} }
+  };
+  const $ = (id) => document.getElementById(id);
+
+  // ----- mission checklist (per-viewer convenience) -----
+  const boxes = [...document.querySelectorAll('#mission input')];
+  const saved = store.get('mission') || {};
+  boxes.forEach(b => { b.checked = !!saved[b.id]; b.addEventListener('change', updateMission); });
+  function updateMission() {
+    const st = {}; let n = 0;
+    boxes.forEach(b => { st[b.id] = b.checked; if (b.checked) n++; });
+    store.set('mission', st);
+    $('m-count').textContent = n === boxes.length ? boxes.length + ' / ' + boxes.length + ' · session complete' : n + ' / ' + boxes.length + ' · about 45 min';
+    $('m-bar').style.width = (n / boxes.length * 100) + '%';
+  }
+  updateMission();
+  function tick(id) { const b = $(id); if (b && !b.checked) { b.checked = true; updateMission(); } }
+
+  // ----- type shelf -----
+  const shelf = [
+    ['byte', 8, '−128 to 127', '—', 'Byte', false],
+    ['short', 16, '−32,768 to 32,767', '—', 'Short', false],
+    ['int', 32, '±2.1 billion', 'number (whole)', 'Integer', true],
+    ['long', 64, '±9.2 quintillion', 'BigInt (kind of)', 'Long', true],
+    ['float', 32, '~7 digits, decimals', '—', 'Float', false],
+    ['double', 64, '~15 digits, decimals', 'number (exactly this)', 'Double', false],
+    ['char', 16, "one character: 'a'", 'a 1-letter string', 'Character', false],
+    ['boolean', 1, 'true or false', 'boolean', 'Boolean', false]
+  ];
+  const shelfEl = $('shelf');
+  shelf.forEach(([t, bits, holds, js, wrap, star]) => {
+    const tr = document.createElement('tr'); if (star) tr.className = 'star';
+    const w = t === 'boolean' ? 3 : bits / 64 * 100;
+    tr.innerHTML = '<td>' + t + '</td><td><div class="bits"><i style="width:' + w + '%"></i><span>' + (t === 'boolean' ? 'true/false' : bits + ' bits') + '</span></div></td>' +
+      '<td class="rng">' + holds + '</td><td>' + js + '</td><td><code>' + wrap + '</code></td>';
+    shelfEl.appendChild(tr);
+  });
+  // seen once the shelf scrolls into view
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((es) => { if (es.some(e => e.isIntersecting)) { setTimeout(() => tick('m2'), 4000); io.disconnect(); } }, { threshold: 0.6 });
+    io.observe(shelfEl);
+  }
+
+  // ----- overflow odometer -----
+  const TYPES = { byte: 8, short: 16, int: 32, long: 64 };
+  const fmt = (b) => b.toLocaleString('en-US');
+  let type = 'int', real = 0n, deg = 0, curF = 0; // the dot is drawn at the top (fraction 0)
+  const range = () => 1n << BigInt(TYPES[type]);
+  const minOf = () => -(range() / 2n), maxOf = () => range() / 2n - 1n;
+  const javaOf = (v) => BigInt.asIntN(TYPES[type], v);
+  function drawOdo(why) {
+    const j = javaOf(real), over = j !== real;
+    $('java-lbl').textContent = 'Java says (' + type + ')';
+    $('java-val').textContent = fmt(j);
+    $('java-val').classList.toggle('bad', over);
+    $('real-val').textContent = fmt(real);
+    $('flag').textContent = over ? 'overflowed' : 'fits';
+    $('flag').classList.toggle('bad', over);
+    $('ring-type').textContent = type;
+    $('ring-bits').textContent = TYPES[type] + ' bits';
+    const f = Number((j - minOf()) * 100000n / range()) / 100000;
+    let d = f - curF; if (d > 0.5) d -= 1; if (d < -0.5) d += 1;
+    deg += d * 360; curF = f;
+    $('dotg').style.transform = 'rotate(' + deg + 'deg)';
+    document.querySelectorAll('[data-type]').forEach(b => b.classList.toggle('on', b.dataset.type === type));
+    let msg;
+    if (why) msg = why;
+    else if (over) msg = 'Overflow. The real answer is ' + fmt(real) + ', but a ' + type + ' only goes up to ' + fmt(maxOf()) + ', so it wrapped round the ring to ' + fmt(j) + '. No error, no warning.';
+    else msg = 'Fits. Java and real maths agree. ' + type + ' runs from ' + fmt(minOf()) + ' to ' + fmt(maxOf()) + '.';
+    $('o-narr').textContent = msg;
+    if (over && type === 'int') tick('m3');
+  }
+  document.querySelectorAll('[data-type]').forEach(b => b.addEventListener('click', () => {
+    type = b.dataset.type; real = javaOf(real); // the value as it would be stored in the new box
+    drawOdo('Switched to ' + type + ': ' + TYPES[type] + ' bits, from ' + fmt(minOf()) + ' to ' + fmt(maxOf()) + '.');
+  }));
+  document.querySelectorAll('[data-op]').forEach(b => b.addEventListener('click', () => {
+    const j = javaOf(real); // Java carries on from what it actually stored
+    const op = b.dataset.op;
+    const next = op === '+1' ? j + 1n : op === '+100' ? j + 100n : op === '+1e9' ? j + 1000000000n : op === 'x2' ? j * 2n : j - 1n;
+    real = next; drawOdo();
+  }));
+  document.querySelectorAll('[data-set]').forEach(b => b.addEventListener('click', () => {
+    const s = b.dataset.set;
+    real = s === 'zero' ? 0n : s === 'nearmax' ? maxOf() - 2n : minOf();
+    drawOdo();
+  }));
+  drawOdo();
+
+  // ----- predict the output -----
+  const H = (code) => code
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/("[^"]*"|'[^']')/g, '<span class="str">$1</span>')
+    .replace(/\b(int|long|char|String|Integer|double|new)\b/g, '<span class="ty">$1</span>')
+    .replace(/\b(System\.out\.println)\b/g, '<span class="fn">$1</span>');
+  const cards = [
+    ['int x = Integer.MAX_VALUE;\nx = x + 1;\nSystem.out.println(x);', ['2147483648', '-2147483648', 'error: overflow'], 1,
+      'It wraps round the ring to MIN. Java never complains about int overflow. It just gives you a wrong number.'],
+    ['System.out.println(7 / 2);', ['3.5', '3', '4'], 1,
+      'int divided by int gives an int. The .5 is thrown away (it rounds toward zero). JS would print 3.5.'],
+    ['System.out.println(7 / 2.0);', ['3', '3.5', '4.0'], 1,
+      'One double in the sum makes the whole thing double maths. 2.0 is a double, so you get 3.5.'],
+    ['long big = Integer.MAX_VALUE + 1;\nSystem.out.println(big);', ['2147483648', '-2147483648', 'compile error'], 1,
+      'The sneaky one. The right side is int + int, so it overflows first, and only then gets stored in the long. Fix: (long) Integer.MAX_VALUE + 1, or use 1L. You need this for fitsInInt.'],
+    ["char c = 'a';\nSystem.out.println(c + 1);", ['b', '98', 'a1'], 1,
+      "A char is a number underneath ('a' is 97). char + int gives an int. To get 'b' back, cast it: (char) (c + 1)."],
+    ['System.out.println("a" + 1);', ['a1', '98', 'error'], 0,
+      'String + anything = String. Same as JS.'],
+    ['String a = "cat";\nString b = "cat";\nSystem.out.println(a == b);', ['true', 'false', 'compile error'], 0,
+      'true! Java reuses one shared object for identical literals in your code, so both arrows point at the same object. This is why == on Strings looks fine in quick tests.'],
+    ['String a = "cat";\nString b = new String("cat");\nSystem.out.println(a == b);', ['true', 'false', 'compile error'], 1,
+      'false. new always makes a fresh object, so the arrows point at two different objects. Same text, different objects. Strings read from input or built in loops behave like this.'],
+    ['String a = "cat";\nString b = new String("cat");\nSystem.out.println(a.equals(b));', ['true', 'false', 'compile error'], 0,
+      'true. .equals() compares the text, not the arrows. Always compare Strings this way.'],
+    ['Integer a = 100;\nInteger b = 100;\nSystem.out.println(a == b);', ['true', 'false', 'compile error'], 0,
+      'true. Java keeps ready-made Integer objects for −128 to 127, so small numbers share an object.'],
+    ['Integer a = 1000;\nInteger b = 1000;\nSystem.out.println(a == b);', ['true', 'false', 'compile error'], 1,
+      'false. 1000 is outside the cache, so each one gets its own object. Same number, == says false. Use a.equals(b).'],
+    ['System.out.println(0.1 + 0.2 == 0.3);', ['true', 'false', 'compile error'], 1,
+      'false, exactly like JS. Doubles store decimals approximately. Never use == to compare doubles.']
+  ];
+  const pAns = store.get('predict') || {};
+  let pAt = 0;
+  const dotsEl = $('pdots');
+  const dots = cards.map((c, i) => {
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = i + 1;
+    b.setAttribute('aria-label', 'Card ' + (i + 1));
+    b.addEventListener('click', () => { pAt = i; drawCard(); });
+    dotsEl.appendChild(b); return b;
+  });
+  function drawCard() {
+    const [code, opts, ans, why] = cards[pAt], picked = pAns[pAt];
+    $('p-num').textContent = 'Card ' + (pAt + 1) + ' of ' + cards.length;
+    $('p-code').innerHTML = H(code);
+    const optsEl = $('p-opts'); optsEl.innerHTML = '';
+    opts.forEach((o, oi) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'opt'; b.textContent = o;
+      if (picked !== undefined && picked !== null) {
+        b.disabled = true;
+        if (oi === ans) b.classList.add('right');
+        if (oi === picked && picked !== ans) b.classList.add('wrong');
+      } else b.addEventListener('click', () => { pAns[pAt] = oi; store.set('predict', pAns); drawCard(); });
+      optsEl.appendChild(b);
+    });
+    const whyEl = $('p-why');
+    whyEl.hidden = picked === undefined || picked === null;
+    if (!whyEl.hidden) whyEl.innerHTML = (picked === ans ? '<b style="color:var(--good)">Right.</b> ' : '<b style="color:var(--bad)">Surprise.</b> ') + why.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+    $('p-prev').disabled = pAt === 0;
+    $('p-next').disabled = pAt === cards.length - 1;
+    let right = 0, n = 0;
+    dots.forEach((d, i) => {
+      d.className = '';
+      const p = pAns[i];
+      if (p !== undefined && p !== null) { n++; if (p === cards[i][2]) { right++; d.classList.add('right'); } else d.classList.add('wrong'); }
+      if (i === pAt) d.classList.add('cur');
+    });
+    $('p-score').textContent = right + ' / ' + cards.length;
+    if (n === cards.length) tick('m4');
+  }
+  $('p-prev').addEventListener('click', () => { if (pAt > 0) { pAt--; drawCard(); } });
+  $('p-next').addEventListener('click', () => { if (pAt < cards.length - 1) { pAt++; drawCard(); } });
+  drawCard();
+
+  // ----- arrow diagram -----
+  const scen = [
+    { name: 'int', code: 'int a = 1000;\nint b = 1000;', prim: '1000', boxes: [], eq: true,
+      narr: 'Primitives: no objects, no arrows. The number sits right inside each variable, so == compares the numbers. Safe.' },
+    { name: 'String literals', code: 'String a = "cat";\nString b = "cat";', boxes: ['"cat"'], eq: true,
+      narr: 'Both literals point at one shared object, so == is true. It feels like == compares text. It doesn\'t.' },
+    { name: 'new String', code: 'String a = "cat";\nString b = new String("cat");', boxes: ['"cat"', '"cat"'], eq: false,
+      narr: 'Two objects with the same text. == compares arrows, they point at different objects, so it\'s false. .equals() looks inside: true.' },
+    { name: 'Integer 100', code: 'Integer a = 100;\nInteger b = 100;', boxes: ['100'], eq: true,
+      narr: 'Small Integers (−128 to 127) come from a shared cache, so both arrows hit the same object. == passes by luck.' },
+    { name: 'Integer 1000', code: 'Integer a = 1000;\nInteger b = 1000;', boxes: ['1000', '1000'], eq: false,
+      narr: '1000 is outside the cache, so each gets its own object. == is false even though the numbers match. This is the sameValue trap.' }
+  ];
+  const visited = new Set(store.get('scen') || []);
+  const scenEl = $('scen'), mem = $('mem');
+  const scenBtns = scen.map((s, i) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'btn mono'; b.textContent = s.name;
+    b.addEventListener('click', () => drawScen(i)); scenEl.appendChild(b); return b;
+  });
+  function arrow(x1, y1, x2, y2) {
+    const a = Math.atan2(y2 - y1, x2 - x1), L = 12, W = 6;
+    const bx = x2 - L * Math.cos(a), by = y2 - L * Math.sin(a);
+    const p1 = (bx + W * Math.sin(a)) + ',' + (by - W * Math.cos(a)), p2 = (bx - W * Math.sin(a)) + ',' + (by + W * Math.cos(a));
+    return '<line class="arrow" x1="' + x1 + '" y1="' + y1 + '" x2="' + bx + '" y2="' + by + '"></line><polygon class="head" points="' + x2 + ',' + y2 + ' ' + p1 + ' ' + p2 + '"></polygon>';
+  }
+  function drawScen(i) {
+    const s = scen[i];
+    scenBtns.forEach((b, k) => b.classList.toggle('on', k === i));
+    $('scen-code').innerHTML = H(s.code);
+    const slotY = { a: 48, b: 144 }, sx = 40, sw = 120, sh = 44;
+    let g = '<text class="lbl" x="' + sx + '" y="26">VARIABLES</text>';
+    ['a', 'b'].forEach(v => {
+      g += '<text x="' + (sx - 18) + '" y="' + (slotY[v] + 27) + '">' + v + '</text>';
+      g += '<rect class="slot" x="' + sx + '" y="' + slotY[v] + '" width="' + sw + '" height="' + sh + '" rx="6"></rect>';
+      if (s.prim) g += '<text x="' + (sx + sw / 2) + '" y="' + (slotY[v] + 27) + '" text-anchor="middle">' + s.prim + '</text>';
+      else g += '<circle cx="' + (sx + sw - 18) + '" cy="' + (slotY[v] + sh / 2) + '" r="5" class="head"></circle>';
+    });
+    if (s.prim) {
+      g += '<text class="note" x="330" y="100">No objects at all.</text><text class="note" x="330" y="120">The values live in the variables.</text>';
+    } else {
+      const ox = 360, ow = 150, oh = 50;
+      g += '<text class="lbl" x="' + ox + '" y="26">OBJECTS</text>';
+      const ys = s.boxes.length === 1 ? [118] : [70, 166];
+      s.boxes.forEach((t, k) => {
+        g += '<rect class="obj" x="' + ox + '" y="' + (ys[k] - oh / 2) + '" width="' + ow + '" height="' + oh + '" rx="8"></rect>';
+        g += '<text x="' + (ox + ow / 2) + '" y="' + (ys[k] + 5) + '" text-anchor="middle">' + t + '</text>';
+      });
+      ['a', 'b'].forEach((v, k) => {
+        const ty = s.boxes.length === 1 ? ys[0] + (k === 0 ? -10 : 10) : ys[k];
+        g += arrow(sx + sw - 18, slotY[v] + sh / 2, ox, ty);
+      });
+    }
+    mem.innerHTML = g;
+    const v = (label, ok) => '<span class="verdict ' + (ok ? 't' : 'f') + '">' + label + ' → ' + ok + '</span>';
+    $('verdicts').innerHTML = v('a == b', s.eq) + (s.prim ? '' : v('a.equals(b)', true));
+    $('scen-narr').textContent = s.narr;
+    visited.add(i); store.set('scen', [...visited]);
+    if (visited.size === scen.length) tick('m5');
+  }
+  drawScen(0);
+
+  // ----- hints -----
+  const hintSets = [
+    ['average', [
+      'Work out <code>average(MAX, MAX)</code> on paper first. <code>a + b</code> is about 4.3 billion. Does that fit in an int?',
+      'Two ways out: do the adding in a bigger box (a <code>long</code>), or avoid adding the two big numbers at all.',
+      'Bigger box: <code>(long) a + b</code>, divide by 2, cast back with <code>(int)</code>. No big sum: start at <code>a</code> and add half the gap between them, <code>(b - a) / 2</code>. That second one is the binary-search midpoint you\'ll see in s28.'
+    ]],
+    ['fitsInInt', [
+      'Work out the true sum somewhere it can\'t overflow, then check whether it lands inside int\'s range.',
+      'The cast has to happen <em>before</em> the <code>+</code>. <code>long sum = a + b;</code> overflows first (predict card 4). <code>long sum = (long) a + b;</code> doesn\'t.',
+      'Then compare <code>sum</code> with <code>Integer.MIN_VALUE</code> and <code>Integer.MAX_VALUE</code>. Return the boolean expression directly, no if needed.'
+    ]],
+    ['factorial', [
+      'Keep a running product and multiply it by 1, 2, 3, … up to n. What should the product start at?',
+      'Start at 1 (0! is 1, and multiplying by 1 changes nothing). Make the running product a <code>long</code>.',
+      'If 13! comes out as 1932053504, your product, or something in the loop, is still an <code>int</code>.'
+    ]],
+    ['countChar', [
+      'Visit every index from 0 to <code>s.length() - 1</code>. Strings use <code>length()</code> with brackets.',
+      '<code>s.charAt(i)</code> gives you a <code>char</code>. chars are primitives, so <code>==</code> is the right way to compare them.',
+      'Shorter: <code>for (char ch : s.toCharArray())</code>.'
+    ]],
+    ['countMatches', [
+      'Loop over the words and count. The loop is the easy part.',
+      'If the runtime test fails with expected &lt;2&gt; but was &lt;0&gt;, click "new String" in the arrow diagram.',
+      '<code>word.equals(target)</code>.'
+    ]],
+    ['sameValue', [
+      'Integer is an object. What does <code>==</code> compare for objects?',
+      '<code>a.equals(b)</code>. Or unwrap both first: <code>a.intValue() == b.intValue()</code>.'
+    ]]
+  ];
+  const hintsEl = $('hints');
+  const opened = store.get('hints') || {};
+  hintSets.forEach(([name, list]) => {
+    const box = document.createElement('div'); box.className = 'hint-set';
+    box.innerHTML = '<header><code></code><button class="btn" type="button"></button></header><ol class="hint-list"></ol>';
+    box.querySelector('code').textContent = name + '()';
+    const btn = box.querySelector('button'), ol = box.querySelector('ol');
+    let shown = opened[name] || 0;
+    const render = () => {
+      ol.innerHTML = '';
+      list.slice(0, shown).forEach(h => { const li = document.createElement('li'); li.innerHTML = h; ol.appendChild(li); });
+      btn.textContent = shown === 0 ? 'Show hint 1' : shown < list.length ? 'Next hint (' + (shown + 1) + '/' + list.length + ')' : 'All hints shown';
+      btn.disabled = shown >= list.length;
+    };
+    btn.addEventListener('click', () => { shown++; opened[name] = shown; store.set('hints', opened); render(); });
+    render(); hintsEl.appendChild(box);
+  });
+
+  // ----- quiz -----
+  const quiz = [
+    ['13! is 6,227,020,800. Which type should hold it?',
+      ['int', 'long', 'double', 'Integer'], 1,
+      'It\'s bigger than int\'s ~2.1 billion. <code>long</code> holds whole numbers up to about 9.2 quintillion, enough for 20!. A double would hold it approximately, and you want it exact.'],
+    ['For two String variables <code>a</code> and <code>b</code>, what does <code>a == b</code> check?',
+      ['That they have the same text', 'That both arrows point at the same object', 'That they have the same length', 'That neither is null'], 1,
+      '<code>==</code> compares what\'s in the variables, and object variables hold arrows. For text, use <code>a.equals(b)</code>.'],
+    ['<code>lo</code> and <code>hi</code> are both ints around 2 billion. Why is <code>(lo + hi) / 2</code> dangerous?',
+      ['Division by 2 is slow', 'The sum overflows and goes negative before the division happens', 'It rounds up instead of down', 'It isn\'t dangerous'], 1,
+      'Java works out <code>lo + hi</code> first, in an int, and it wraps. <code>lo + (hi - lo) / 2</code> never builds the big sum. Remember this one for binary search.'],
+    ['Which line compiles?',
+      ['char c = "a";', "char c = 'a';", "String s = 'abc';", 'int n = 3.7;'], 1,
+      'Single quotes make a char, double quotes make a String. <code>int n = 3.7</code> fails too: Java won\'t silently drop the .7 for you.']
+  ];
+  const quizEl = $('quiz');
+  const answered = store.get('quiz') || {};
+  let right = 0;
+  quiz.forEach(([q, opts, ans, why], qi) => {
+    const box = document.createElement('div'); box.className = 'q';
+    box.innerHTML = '<p><b>' + (qi + 1) + '.</b> ' + q + '</p><div class="opts"></div><p class="explain" hidden></p>';
+    const optsEl = box.querySelector('.opts'), ex = box.querySelector('.explain');
+    const buttons = opts.map((o, oi) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'opt'; b.textContent = o;
+      if (/[=;'"]/.test(o)) b.style.fontFamily = 'var(--mono)';
+      b.addEventListener('click', () => choose(oi)); optsEl.appendChild(b); return b;
+    });
+    function choose(oi, silent) {
+      buttons.forEach((b, k) => { b.disabled = true; if (k === ans) b.classList.add('right'); if (k === oi && oi !== ans) b.classList.add('wrong'); });
+      ex.hidden = false;
+      ex.innerHTML = (oi === ans ? '<b style="color:var(--good)">Right.</b> ' : '<b style="color:var(--bad)">Not quite.</b> ') + why;
+      if (oi === ans) right++;
+      if (!silent) { answered[qi] = oi; store.set('quiz', answered); }
+      $('score').textContent = right + ' / ' + quiz.length;
+    }
+    if (answered[qi] !== undefined && answered[qi] !== null) choose(answered[qi], true);
+    quizEl.appendChild(box);
+  });
+})();
+</script>
