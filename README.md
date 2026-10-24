@@ -11,7 +11,8 @@ src/main/java/phaseN/sXX_topic/   your code: each exercise starts as a TODO
 src/test/java/phaseN/sXX_topic/   tests that tell you when you're done
 notes/                            3 lines per session, in your own words
 PARKING_LOT.md                    rabbit holes, saved for later
-archive/js-2024/                  the 2024 JavaScript/TypeScript attempt
+archive/js/                       earlier JavaScript/TypeScript attempts (2024–2026)
+archive/c/                        earlier C experiments
 ```
 
 ## Running tests

@@ -4,7 +4,7 @@ import java.util.Map;
 
 /**
  * Session 01 · Part B: LeetCode 1, Two Sum, the one you already solved in TypeScript.
- * Your old version is in archive/js-2024/Arrays/TwoSum.ts. Translate it, don't copy it blind.
+ * Your old version is in archive/js/Arrays/TwoSum.ts. Translate it, don't copy it blind.
  *
  * Given an array of integers nums and an integer target, return the indices of the
  * two numbers that add up to target. Exactly one answer exists, and you may not use
