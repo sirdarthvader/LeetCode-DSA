@@ -1,0 +1,526 @@
+<title>Hello Java · s01</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one reading column (~720px) of stacked "stations"; code and visualizers break out to full column width. Shared course tokens. */
+:root {
+  --bg: #F3F5F9; --surface: #FFFFFF; --surface-2: #E8ECF2; --ink: #131C2B; --muted: #566377; --rule: #D5DBE4;
+  --accent: #2A56E0; --accent-ink: #FFFFFF; --accent-soft: #DCE5FF;
+  --mark: #FFD447; --mark-ink: #1D1700; --good: #137D55; --good-soft: #D6F2E5; --bad: #B83A33; --bad-soft: #F8DEDC;
+  --code-bg: #101826; --code-ink: #DCE4EF; --code-dim: #7D8BA0; --c-kw: #FF9E64; --c-ty: #7DCFFF; --c-str: #A6E3A1; --c-num: #F9E2AF; --c-fn: #CBA6F7;
+  --display: 'Bricolage Grotesque', 'Avenir Next', system-ui, sans-serif;
+  --body: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0C121A; --surface: #141C27; --surface-2: #1C2633; --ink: #E6EBF2; --muted: #93A0B2; --rule: #273345;
+  --accent: #7C9CFF; --accent-ink: #0C121A; --accent-soft: #1E2A4D;
+  --mark: #F2C94C; --mark-ink: #1D1700; --good: #4CC38A; --good-soft: #143326; --bad: #F07A72; --bad-soft: #3A1B1A;
+  --code-bg: #0A0F17; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0C121A; --surface: #141C27; --surface-2: #1C2633; --ink: #E6EBF2; --muted: #93A0B2; --rule: #273345;
+  --accent: #7C9CFF; --accent-ink: #0C121A; --accent-soft: #1E2A4D;
+  --mark: #F2C94C; --mark-ink: #1D1700; --good: #4CC38A; --good-soft: #143326; --bad: #F07A72; --bad-soft: #3A1B1A;
+  --code-bg: #0A0F17; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 16px/1.6 var(--body); }
+.wrap { max-width: 760px; margin: 0 auto; padding-block: 40px 96px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 56px; }
+h1, h2, h3 { font-family: var(--display); line-height: 1.1; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(2.6rem, 7vw, 4rem); font-weight: 800; letter-spacing: -0.02em; }
+h2 { font-size: 1.75rem; font-weight: 700; letter-spacing: -0.01em; }
+h3 { font-size: 1.15rem; font-weight: 700; }
+p { margin: 0; max-width: 65ch; }
+code, kbd { font-family: var(--mono); font-size: 0.88em; background: var(--surface-2); padding: 0.1em 0.35em; border-radius: 4px; }
+section { display: grid; gap: 18px; }
+.eyebrow { font: 600 0.75rem/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.eyebrow .tag { background: var(--mark); color: var(--mark-ink); padding: 4px 8px; border-radius: 3px; }
+.lede { font-size: 1.15rem; color: var(--muted); }
+.muted { color: var(--muted); }
+button { font: inherit; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.btn { border: 1px solid var(--rule); background: var(--surface); color: var(--ink); padding: 8px 14px; border-radius: 8px; font-weight: 600; font-size: 0.92rem; }
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn:disabled { opacity: 0.45; cursor: default; }
+
+/* mission checklist */
+.mission { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 20px; display: grid; gap: 14px; }
+.mission-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.meter { height: 8px; background: var(--surface-2); border-radius: 99px; overflow: hidden; }
+.meter > i { display: block; height: 100%; width: 0; background: var(--good); transition: width .3s; }
+.mission ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.mission label { display: flex; gap: 12px; align-items: flex-start; padding: 6px 4px; border-radius: 6px; cursor: pointer; }
+.mission label:hover { background: var(--surface-2); }
+.mission input { width: 18px; height: 18px; margin-top: 3px; accent-color: var(--good); flex: none; }
+.mission input:checked + span { color: var(--muted); text-decoration: line-through; }
+.mins { font: 0.78rem var(--mono); color: var(--muted); margin-left: auto; white-space: nowrap; padding-left: 8px; }
+
+/* code */
+pre { margin: 0; background: var(--code-bg); color: var(--code-ink); font: 0.86rem/1.65 var(--mono); padding: 16px 18px; border-radius: 10px; overflow-x: auto; }
+pre code { background: none; padding: 0; font-size: inherit; color: inherit; }
+.kw { color: var(--c-kw); } .ty { color: var(--c-ty); } .str { color: var(--c-str); } .num { color: var(--c-num); } .fn { color: var(--c-fn); } .com { color: var(--code-dim); font-style: italic; }
+
+/* anatomy */
+.anatomy { background: var(--code-bg); border-radius: 10px; padding: 22px 18px; overflow-x: auto; }
+.anatomy .line { font: 1.05rem/1.4 var(--mono); color: var(--code-ink); white-space: nowrap; display: flex; gap: 0.55em; }
+.anatomy .part { border: 0; background: none; color: inherit; font: inherit; padding: 2px 3px; border-radius: 4px; border-bottom: 2px dashed var(--code-dim); }
+.anatomy .part:hover, .anatomy .part.on { background: var(--accent); color: var(--accent-ink); border-bottom-color: transparent; }
+.anatomy-note { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 14px 16px; min-height: 76px; }
+.anatomy-note b { font-family: var(--mono); }
+
+/* phrasebook */
+.deck-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.card { text-align: left; border: 1px solid var(--rule); background: var(--surface); border-radius: 10px; padding: 14px; display: grid; gap: 8px; align-content: start; min-height: 132px; color: var(--ink); }
+.card:hover { border-color: var(--accent); }
+.card .side { font: 0.7rem/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.card .js { font: 0.88rem/1.4 var(--mono); }
+.card .java { font: 0.88rem/1.4 var(--mono); color: var(--accent); font-weight: 600; }
+.card .why { font-size: 0.85rem; color: var(--muted); }
+.card .ask { font-size: 0.82rem; color: var(--muted); font-style: italic; }
+.card.flipped { background: var(--accent-soft); border-color: var(--accent); }
+
+/* visualizer */
+.viz { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 20px; display: grid; gap: 18px; }
+.viz-top { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+.viz select { font: 0.88rem var(--mono); padding: 7px 10px; border-radius: 8px; border: 1px solid var(--rule); background: var(--surface); color: var(--ink); max-width: 100%; }
+.arr-wrap { overflow-x: auto; padding-bottom: 4px; }
+.arr { display: flex; gap: 6px; }
+.cell { width: 56px; flex: none; display: grid; gap: 4px; text-align: center; }
+.cell .v { height: 52px; display: grid; place-items: center; border: 2px solid var(--rule); border-radius: 8px; font: 600 1.05rem var(--mono); background: var(--surface); transition: all .2s; }
+.cell .i { font: 0.72rem var(--mono); color: var(--muted); }
+.cell.seen .v { background: var(--surface-2); color: var(--muted); }
+.cell.cur .v { border-color: var(--accent); background: var(--accent-soft); color: var(--ink); transform: translateY(-4px); }
+.cell.hit .v { border-color: var(--good); background: var(--good-soft); color: var(--ink); }
+.cell .ptr { font: 600 0.72rem var(--mono); color: var(--accent); height: 1em; }
+.viz-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 560px) { .viz-grid { grid-template-columns: 1fr; } }
+.panel { border: 1px solid var(--rule); border-radius: 10px; padding: 12px 14px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.panel h4 { margin: 0; font: 600 0.72rem/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.maptable { width: 100%; border-collapse: collapse; font: 0.88rem var(--mono); font-variant-numeric: tabular-nums; }
+.maptable th, .maptable td { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--rule); }
+.maptable th { color: var(--muted); font-weight: 400; }
+.maptable tr.new td { background: var(--mark); color: var(--mark-ink); }
+.maptable tr.found td { background: var(--good-soft); }
+.calc { font: 0.95rem/1.5 var(--mono); }
+.narr { font-size: 0.98rem; min-height: 3.2em; }
+.viz-ctrl { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.stepno { font: 0.8rem var(--mono); color: var(--muted); margin-left: auto; }
+
+/* run */
+.term { background: var(--code-bg); color: var(--code-ink); border-radius: 10px; padding: 14px 16px; font: 0.82rem/1.6 var(--mono); overflow-x: auto; white-space: pre; }
+.term .r { color: #FF8A80; } .term .g { color: #8BE9A8; } .term .d { color: var(--code-dim); }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 620px) { .two { grid-template-columns: 1fr; } }
+.two > * { min-width: 0; }
+.cap { font: 600 0.72rem/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+
+/* hints */
+.hint-set { border: 1px solid var(--rule); border-radius: 10px; background: var(--surface); }
+.hint-set > header { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 16px; flex-wrap: wrap; }
+.hint-set > header code { font-size: 0.9rem; }
+.hint-list { list-style: none; margin: 0; padding: 0 16px; display: grid; gap: 8px; }
+.hint-list li { border-left: 3px solid var(--mark); padding: 4px 0 4px 12px; }
+.hint-list li:last-child { margin-bottom: 14px; }
+.hint-list pre { margin-top: 8px; font-size: 0.8rem; }
+
+/* errors */
+details { border: 1px solid var(--rule); border-radius: 10px; background: var(--surface); padding: 0 16px; }
+details + details { margin-top: -10px; }
+summary { cursor: pointer; padding: 12px 0; font: 600 0.9rem var(--mono); }
+details > div { padding-bottom: 14px; display: grid; gap: 8px; }
+
+/* quiz */
+.q { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 18px; display: grid; gap: 12px; }
+.q .opts { display: grid; gap: 8px; }
+.opt { text-align: left; border: 1px solid var(--rule); background: var(--surface); color: var(--ink); padding: 10px 12px; border-radius: 8px; font-size: 0.95rem; }
+.opt:hover:not(:disabled) { border-color: var(--accent); }
+.opt.right { background: var(--good-soft); border-color: var(--good); }
+.opt.wrong { background: var(--bad-soft); border-color: var(--bad); }
+.opt:disabled { cursor: default; }
+.explain { font-size: 0.92rem; color: var(--muted); }
+.score { font: 600 1rem var(--mono); }
+
+.finish { border-top: 1px solid var(--rule); padding-top: 28px; display: grid; gap: 12px; }
+a { color: var(--accent); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<main class="wrap">
+
+<header style="display:grid; gap:16px">
+  <div class="eyebrow"><span class="tag">s01</span> Phase 0 · Java Ground · session 1 of 127</div>
+  <h1>Hello Java</h1>
+  <p class="lede">You already solved Two Sum in TypeScript. Today you write it again in Java. Same idea, new words. The point is to get comfortable with Java's syntax on a problem where you already know the answer.</p>
+</header>
+
+<section aria-labelledby="m-h">
+  <div class="mission">
+    <div class="mission-head">
+      <h2 id="m-h" style="font-size:1.3rem">Today's mission</h2>
+      <span class="muted" id="m-count" style="font:0.85rem var(--mono)">0 / 7 · about 45 min</span>
+    </div>
+    <div class="meter" aria-hidden="true"><i id="m-bar"></i></div>
+    <ol id="mission">
+      <li><label><input type="checkbox" id="m1"><span>One-time setup: open a tmux split next to Neovim and run <code>mvn -q test -Dtest=TwoSumTest</code> once. You should see red. (Optional: enable the <b>lang.java</b> extra in <code>:LazyExtras</code> for inline errors.)</span><span class="mins">3 min</span></label></li>
+      <li><label><input type="checkbox" id="m2"><span>Click through the anatomy of a Java method</span><span class="mins">3 min</span></label></li>
+      <li><label><input type="checkbox" id="m3"><span>Flip the phrasebook cards. Guess each one first</span><span class="mins">7 min</span></label></li>
+      <li><label><input type="checkbox" id="m4"><span>Step through Two Sum in the visualizer</span><span class="mins">5 min</span></label></li>
+      <li><label><input type="checkbox" id="m5"><span>Make <code>ArrayBasicsTest</code> green</span><span class="mins">12 min</span></label></li>
+      <li><label><input type="checkbox" id="m6"><span>Make <code>TwoSumTest</code> green</span><span class="mins">10 min</span></label></li>
+      <li><label><input type="checkbox" id="m7"><span>Lock in: quiz, 3 lines in <code>notes/s01.md</code>, tick s01 in the tracker</span><span class="mins">5 min</span></label></li>
+    </ol>
+  </div>
+</section>
+
+<section aria-labelledby="a-h">
+  <div class="eyebrow">Part 1</div>
+  <h2 id="a-h">Anatomy of a Java method</h2>
+  <p>In JavaScript, a function can take anything and return anything. Java makes you write down what goes in and what comes out. Click each word.</p>
+  <div class="anatomy" role="group" aria-label="Java method signature">
+    <div class="line" id="sig"></div>
+  </div>
+  <div class="anatomy-note" id="sig-note" aria-live="polite"><span class="muted">Pick a word above to see what it does.</span></div>
+  <p>Writing types feels slower at first. The payoff: the compiler reads your code before it runs and catches whole categories of bugs, like passing a string where a number belongs, before you ever see them at runtime.</p>
+</section>
+
+<section aria-labelledby="p-h">
+  <div class="eyebrow">Part 2</div>
+  <div class="deck-head">
+    <h2 id="p-h">JS → Java phrasebook</h2>
+    <span class="muted" id="deck-count" style="font:0.85rem var(--mono)">0 / 14 flipped</span>
+  </div>
+  <p>Read the JavaScript, say the Java out loud (or in your head), then flip. Guessing wrong is fine. Guessing at all is what makes it stick.</p>
+  <div class="cards" id="cards"></div>
+</section>
+
+<section aria-labelledby="v-h">
+  <div class="eyebrow">Part 3</div>
+  <h2 id="v-h">Watch Two Sum run</h2>
+  <p>This is the same one-pass HashMap idea from your TypeScript version. For each number, ask: "have I already seen the number that completes it?" If not, remember this number and its index.</p>
+  <div class="viz">
+    <div class="viz-top">
+      <label for="ex" class="muted" style="font-size:0.9rem">Input</label>
+      <select id="ex" style="flex:1">
+        <option value="0">nums = [2, 7, 11, 15], target = 9</option>
+        <option value="1">nums = [3, 2, 4], target = 6</option>
+        <option value="2" selected>nums = [3, 2, 4, 5, 7, 9], target = 11</option>
+        <option value="3">nums = [3, 3], target = 6</option>
+      </select>
+    </div>
+    <div class="arr-wrap"><div class="arr" id="arr"></div></div>
+    <div class="viz-grid">
+      <div class="panel">
+        <h4>This step</h4>
+        <div class="calc" id="calc"></div>
+      </div>
+      <div class="panel">
+        <h4>seen &nbsp;<span style="text-transform:none; letter-spacing:0">Map&lt;Integer, Integer&gt;</span></h4>
+        <table class="maptable"><thead><tr><th>key (number)</th><th>value (index)</th></tr></thead><tbody id="map"></tbody></table>
+      </div>
+    </div>
+    <p class="narr" id="narr" aria-live="polite"></p>
+    <div class="viz-ctrl">
+      <button class="btn" id="prev">← Back</button>
+      <button class="btn primary" id="next">Next step →</button>
+      <button class="btn" id="reset">Reset</button>
+      <span class="stepno" id="stepno"></span>
+    </div>
+  </div>
+  <p class="muted">Why it's fast: the array is walked once, and each map lookup takes roughly constant time. That's O(n). Checking every pair would be O(n²). You'll learn exactly what those mean in s09.</p>
+</section>
+
+<section aria-labelledby="r-h">
+  <div class="eyebrow">Part 4</div>
+  <h2 id="r-h">Make the tests green</h2>
+  <p>Your files are <code>src/main/java/phase0/s01_hello_java/ArrayBasics.java</code> and <code>TwoSum.java</code>. Each method currently throws a TODO. Replace the throw with your code, then run the tests from the repo folder:</p>
+  <pre><code>mvn -q test -Dtest=ArrayBasicsTest
+mvn -q test -Dtest=TwoSumTest</code></pre>
+  <p class="muted">Loop: edit in Neovim, <code>:w</code>, jump to the tmux split, press ↑ and Enter to re-run. Repeat until there's no output.</p>
+  <div class="two">
+    <div><div class="cap">Before: red</div><div class="term"><span class="r">[ERROR] Tests run: 5, Errors: 5</span>
+<span class="d">java.lang.</span>UnsupportedOperationException:
+  TODO: implement twoSum</div></div>
+    <div><div class="cap">After: green</div><div class="term"><span class="d">$ mvn -q test -Dtest=TwoSumTest</span>
+<span class="d">$</span> <span class="g">▍</span>
+<span class="d">(-q means quiet: no output = all passed)</span></div></div>
+  </div>
+  <p>Do <code>ArrayBasics</code> first. Its four small methods drill the loop syntax you'll need for Two Sum.</p>
+</section>
+
+<section aria-labelledby="h-h">
+  <div class="eyebrow">Stuck?</div>
+  <h2 id="h-h">Hints, one at a time</h2>
+  <p>Give yourself 5 honest minutes on a method before opening a hint. Then take only one, and go try again.</p>
+  <div id="hints" style="display:grid; gap:12px"></div>
+</section>
+
+<section aria-labelledby="e-h">
+  <div class="eyebrow">Decoder</div>
+  <h2 id="e-h">Compiler errors you'll probably meet today</h2>
+  <div>
+    <details><summary>error: missing return statement</summary><div><p>Java checks that <em>every</em> path through a method returns a value. In Two Sum you "know" an answer exists, but Java doesn't. After your loop, add something like <code>throw new IllegalArgumentException("no solution");</code></p></div></details>
+  </div>
+  <div>
+    <details><summary>error: cannot find symbol … class HashMap</summary><div><p>You used <code>HashMap</code> without importing it. Add these at the top of the file, under the <code>package</code> line:</p><pre><code><span class="kw">import</span> java.util.<span class="ty">HashMap</span>;
+<span class="kw">import</span> java.util.<span class="ty">Map</span>;</code></pre></div></details>
+  </div>
+  <div>
+    <details><summary>error: ';' expected</summary><div><p>Every statement ends with a semicolon in Java. It's not optional like in JS. The error points at the line <em>after</em> the missing one surprisingly often, so check the line above too.</p></div></details>
+  </div>
+  <div>
+    <details><summary>error: incompatible types: int[] cannot be converted to int</summary><div><p>You returned the wrong shape. The method signature promises one type and you handed back another. Read the return type in the signature again.</p></div></details>
+  </div>
+</section>
+
+<section aria-labelledby="q-h">
+  <div class="eyebrow">Lock in</div>
+  <div class="deck-head">
+    <h2 id="q-h">Four quick questions</h2>
+    <span class="score" id="score">0 / 4</span>
+  </div>
+  <div id="quiz" style="display:grid; gap:12px"></div>
+</section>
+
+<section class="finish">
+  <h3>Done with all 7?</h3>
+  <p>Write three lines in <code>notes/s01.md</code>: the idea, when to use it, what tripped you up. Then tick s01 in your <a href="https://claude.ai/artifact/2GrTM6DxjxduvdujM6XEed" target="_blank" rel="noopener">Roadmap Tracker ↗</a>. If a "but why?" question is still nagging you, put it in <code>PARKING_LOT.md</code>. It'll get its own deep dive.</p>
+  <p><b>Bonus:</b> paste your Java Two Sum into <a href="https://leetcode.com/problems/two-sum/" target="_blank" rel="noopener">LeetCode 1 ↗</a> (switch the language to Java), submit it, then set its status on the s01 card in the tracker. Be honest about hints. Honest marks are how the redo queue knows when to bring a problem back.</p>
+  <p class="muted">Next up: s02, Types. Why <code>int</code> and <code>Integer</code> are different things, what happens when a number gets too big, and why <code>==</code> on Strings will betray you.</p>
+</section>
+
+</main>
+
+<script>
+(function () {
+  const store = {
+    get(k) { try { return JSON.parse(localStorage.getItem('s01:' + k)); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem('s01:' + k, JSON.stringify(v)); } catch (e) {} }
+  };
+
+  // ----- mission checklist (per-viewer convenience) -----
+  const boxes = [...document.querySelectorAll('#mission input')];
+  const saved = store.get('mission') || {};
+  boxes.forEach(b => { b.checked = !!saved[b.id]; b.addEventListener('change', updateMission); });
+  function updateMission() {
+    const st = {}; let n = 0;
+    boxes.forEach(b => { st[b.id] = b.checked; if (b.checked) n++; });
+    store.set('mission', st);
+    document.getElementById('m-count').textContent = n === boxes.length ? '7 / 7 · session complete' : n + ' / 7 · about 45 min';
+    document.getElementById('m-bar').style.width = (n / boxes.length * 100) + '%';
+  }
+  updateMission();
+
+  // ----- anatomy -----
+  const parts = [
+    ['public', 'kw', '<b>public</b>: anyone can call this method, including your test file. (Its opposite, <b>private</b>, hides it inside the class.)'],
+    ['static', 'kw', '<b>static</b>: the method belongs to the class itself, so you call it as <code>TwoSum.twoSum(...)</code> without creating an object first. Most LeetCode-style helpers start static. Objects come in s04.'],
+    ['int[]', 'ty', '<b>int[]</b> is the <em>return type</em>: this method promises to hand back an array of ints. Returning anything else won\'t compile. A method that returns nothing says <b>void</b>.'],
+    ['twoSum', 'fn', '<b>twoSum</b>: the method name. Java uses camelCase, same as JS.'],
+    ['(int[] nums,', 'ty', '<b>int[] nums</b>: the first parameter. Type first, then name. This is a fixed-length array of primitive ints. It can\'t grow like a JS array (that\'s <b>ArrayList</b>, s05).'],
+    ['int target)', 'ty', '<b>int target</b>: a single whole number. <b>int</b> is a primitive: just a 32-bit number, no methods, can\'t be null. Range is about ±2.1 billion.'],
+    ['{ … }', 'com', '<b>{ … }</b>: the body. Every statement inside ends with <b>;</b>. Every path through it must <b>return</b> an <b>int[]</b>.']
+  ];
+  const sig = document.getElementById('sig'), note = document.getElementById('sig-note');
+  const seenParts = new Set();
+  parts.forEach(([txt, cls, html], i) => {
+    const b = document.createElement('button');
+    b.className = 'part ' + cls; b.textContent = txt; b.type = 'button';
+    b.addEventListener('click', () => {
+      sig.querySelectorAll('.part').forEach(p => p.classList.remove('on'));
+      b.classList.add('on'); note.innerHTML = html; seenParts.add(i);
+      if (seenParts.size === parts.length) tick('m2');
+    });
+    sig.appendChild(b);
+  });
+
+  // ----- phrasebook -----
+  const deck = [
+    ['let count = 0;', 'int count = 0;', 'Declare the type. int = whole number.'],
+    ['const nums = [1, 2, 3];', 'int[] nums = {1, 2, 3};', 'Curly braces for array literals. Fixed length.'],
+    ['new Array(5)', 'new int[5]', 'Starts as [0, 0, 0, 0, 0]. Never empty slots, never undefined.'],
+    ['nums.length', 'nums.length', 'Same on arrays. No parentheses.'],
+    ['str.length', 'str.length()', 'Strings use a method with (). Arrays don\'t. Classic gotcha.'],
+    ['for (let i = 0; i < n; i++)', 'for (int i = 0; i < n; i++)', 'Only the let changes.'],
+    ['for (const n of nums)', 'for (int n : nums)', 'The "for-each" loop. Read the colon as "in".'],
+    ['const map = new Map();', 'Map<Integer, Integer> map = new HashMap<>();', 'Say the key and value types. Integer, not int (s02 explains why).'],
+    ['map.has(k)', 'map.containsKey(k)', 'Ask before you get.'],
+    ['map.set(k, v)', 'map.put(k, v)', 'put also overwrites an existing key.'],
+    ['map.get(k)', 'map.get(k)', 'Same name. Returns null if the key is missing.'],
+    ['return [a, b];', 'return new int[] {a, b};', 'Create the array and fill it in one go.'],
+    ['console.log(x)', 'System.out.println(x);', 'Long, but you\'ll type it a thousand times.'],
+    ['a === b  (numbers)', 'a == b', 'For primitives like int, == compares values. For objects it doesn\'t (s02).']
+  ];
+  const cardsEl = document.getElementById('cards');
+  const flipped = new Set(store.get('flipped') || []);
+  deck.forEach(([js, java, why], i) => {
+    const c = document.createElement('button');
+    c.type = 'button'; c.className = 'card';
+    const render = () => {
+      const on = flipped.has(i);
+      c.classList.toggle('flipped', on);
+      c.setAttribute('aria-pressed', on);
+      c.innerHTML = '<span class="side">JavaScript</span><span class="js"></span>' +
+        (on ? '<span class="side">Java</span><span class="java"></span><span class="why"></span>' : '<span class="ask">Say the Java, then tap to flip</span>');
+      c.querySelector('.js').textContent = js;
+      if (on) { c.querySelector('.java').textContent = java; c.querySelector('.why').textContent = why; }
+    };
+    c.addEventListener('click', () => { flipped.has(i) ? flipped.delete(i) : flipped.add(i); store.set('flipped', [...flipped]); render(); deckCount(); });
+    render(); cardsEl.appendChild(c);
+  });
+  function deckCount() {
+    document.getElementById('deck-count').textContent = flipped.size + ' / ' + deck.length + ' flipped';
+    if (flipped.size === deck.length) tick('m3');
+  }
+  deckCount();
+
+  // ----- Two Sum visualizer -----
+  const examples = [
+    { nums: [2, 7, 11, 15], target: 9 },
+    { nums: [3, 2, 4], target: 6 },
+    { nums: [3, 2, 4, 5, 7, 9], target: 11 },
+    { nums: [3, 3], target: 6 }
+  ];
+  let steps = [], at = 0;
+  function build(ex) {
+    const { nums, target } = ex; const seen = []; const out = [];
+    out.push({ i: -1, seen: [], text: 'Start with an empty map. We\'ll walk the array left to right, one index at a time.' });
+    for (let i = 0; i < nums.length; i++) {
+      const comp = target - nums[i];
+      const hit = seen.find(e => e[0] === comp);
+      if (hit) {
+        out.push({ i, comp, seen: seen.slice(), found: hit, text: 'seen has ' + comp + ' (at index ' + hit[1] + '). ' + comp + ' + ' + nums[i] + ' = ' + target + '. Return new int[] {' + hit[1] + ', ' + i + '}.' });
+        break;
+      }
+      const dup = seen.findIndex(e => e[0] === nums[i]);
+      out.push({ i, comp, seen: seen.slice(), miss: true, text: 'Need ' + comp + ' to pair with ' + nums[i] + '. seen.containsKey(' + comp + ') is false.' });
+      if (dup >= 0) seen[dup] = [nums[i], i]; else seen.push([nums[i], i]); // put overwrites an existing key
+      out.push({ i, comp, seen: seen.slice(), put: nums[i], text: 'Remember this one: seen.put(' + nums[i] + ', ' + i + '). Move on to index ' + (i + 1) + '.' });
+    }
+    return out;
+  }
+  const arrEl = document.getElementById('arr'), mapEl = document.getElementById('map'), calcEl = document.getElementById('calc'), narrEl = document.getElementById('narr');
+  function draw() {
+    const ex = examples[+document.getElementById('ex').value], s = steps[at];
+    arrEl.innerHTML = '';
+    ex.nums.forEach((v, k) => {
+      const cell = document.createElement('div'); cell.className = 'cell';
+      if (k < s.i) cell.classList.add('seen');
+      if (k === s.i) cell.classList.add(s.found ? 'hit' : 'cur');
+      if (s.found && k === s.found[1]) cell.classList.add('hit');
+      cell.innerHTML = '<span class="ptr">' + (k === s.i ? 'i' : '') + '</span><span class="v">' + v + '</span><span class="i">[' + k + ']</span>';
+      arrEl.appendChild(cell);
+    });
+    mapEl.innerHTML = s.seen.length ? '' : '<tr><td colspan="2" class="muted">empty</td></tr>';
+    s.seen.forEach(([k, v]) => {
+      const tr = document.createElement('tr');
+      if (s.put === k && v === s.i) tr.className = 'new';
+      if (s.found && s.found[0] === k) tr.className = 'found';
+      tr.innerHTML = '<td>' + k + '</td><td>' + v + '</td>'; mapEl.appendChild(tr);
+    });
+    calcEl.innerHTML = s.i < 0 ? '<span class="muted">target = ' + ex.target + '</span>'
+      : 'i = ' + s.i + '<br>nums[i] = ' + ex.nums[s.i] + '<br>complement = ' + ex.target + ' − ' + ex.nums[s.i] + ' = <b>' + s.comp + '</b>';
+    narrEl.textContent = s.text;
+    document.getElementById('prev').disabled = at === 0;
+    document.getElementById('next').disabled = at === steps.length - 1;
+    document.getElementById('stepno').textContent = 'step ' + (at + 1) + ' / ' + steps.length;
+    if (at === steps.length - 1) tick('m4');
+  }
+  function load() { steps = build(examples[+document.getElementById('ex').value]); at = 0; draw(); }
+  document.getElementById('ex').addEventListener('change', load);
+  document.getElementById('next').addEventListener('click', () => { if (at < steps.length - 1) { at++; draw(); } });
+  document.getElementById('prev').addEventListener('click', () => { if (at > 0) { at--; draw(); } });
+  document.getElementById('reset').addEventListener('click', () => { at = 0; draw(); });
+  load();
+
+  // ----- hints -----
+  const H = (s) => s; // hint html is authored below
+  const hintSets = [
+    ['sum', [
+      'Keep a running total that starts at 0. Visit every number and add it on.',
+      'Declare it with a type: <code>int total = 0;</code>. The for-each loop from the phrasebook visits every element.',
+      '<pre><code><span class="kw">for</span> (<span class="ty">int</span> n : nums) {\n    total += n;\n}\n<span class="kw">return</span> total;</code></pre>'
+    ]],
+    ['max', [
+      'What should "the biggest so far" start as? Starting at 0 breaks on <code>[-5, -2]</code>, because 0 isn\'t in the array.',
+      'Start with the first element: <code>int best = nums[0];</code>. Then loop and keep the larger one each time.',
+      '<code>Math.max(best, n)</code> works exactly like in JS.'
+    ]],
+    ['countEven', [
+      'A number is even when dividing it by 2 leaves no remainder.',
+      '<code>n % 2 == 0</code> is the test. It also works for 0 and negative even numbers like -2.'
+    ]],
+    ['reversed', [
+      'You need a brand-new array of the same length: <code>int[] result = new int[nums.length];</code>',
+      'Fill it with an index loop. Where does <code>result[0]</code> come from? <code>result[1]</code>? Write out the pattern for a 3-element array.',
+      '<code>result[i] = nums[nums.length - 1 - i];</code>'
+    ]],
+    ['twoSum', [
+      'Same plan as your TypeScript version: walk the array once, and remember each number\'s index as you go.',
+      'The map: <code>Map&lt;Integer, Integer&gt; seen = new HashMap&lt;&gt;();</code> (key = number, value = its index). Don\'t forget the two imports. See the decoder below.',
+      'For each <code>i</code>: compute <code>target - nums[i]</code>. If <code>seen.containsKey</code> it, return <code>new int[] {seen.get(complement), i}</code>. Otherwise <code>seen.put(nums[i], i)</code>.',
+      'Getting "missing return statement"? Java wants a return after the loop too. Throw an exception there. See the decoder.'
+    ]]
+  ];
+  const hintsEl = document.getElementById('hints');
+  const opened = store.get('hints') || {};
+  hintSets.forEach(([name, list]) => {
+    const box = document.createElement('div'); box.className = 'hint-set';
+    box.innerHTML = '<header><code></code><button class="btn" type="button"></button></header><ol class="hint-list"></ol>';
+    box.querySelector('code').textContent = name + '()';
+    const btn = box.querySelector('button'), ol = box.querySelector('ol');
+    let shown = opened[name] || 0;
+    const render = () => {
+      ol.innerHTML = '';
+      list.slice(0, shown).forEach(h => { const li = document.createElement('li'); li.innerHTML = H(h); ol.appendChild(li); });
+      btn.textContent = shown === 0 ? 'Show hint 1' : shown < list.length ? 'Next hint (' + (shown + 1) + '/' + list.length + ')' : 'All hints shown';
+      btn.disabled = shown >= list.length;
+    };
+    btn.addEventListener('click', () => { shown++; opened[name] = shown; store.set('hints', opened); render(); });
+    render(); hintsEl.appendChild(box);
+  });
+
+  // ----- quiz -----
+  const quiz = [
+    ['What does <code>new int[3]</code> contain right after it\'s created?',
+      ['[0, 0, 0]', '[null, null, null]', '[] (empty)', '[undefined × 3]'], 0,
+      'Primitive int arrays are filled with 0. Arrays of objects (like <code>Integer[]</code>) start as null instead.'],
+    ['Why is it <code>Map&lt;Integer, Integer&gt;</code> and not <code>Map&lt;int, int&gt;</code>?',
+      ['Integer is faster than int', 'Collections can only hold objects, and int is a primitive', 'It\'s just a style preference', 'int can\'t be negative'], 1,
+      '<code>int</code> is a raw number. <code>Integer</code> wraps it in an object so collections can store it. Java converts between them for you ("autoboxing"). Full story in s02–s03.'],
+    ['How many times does the HashMap version of Two Sum walk the array, in the worst case?',
+      ['Once', 'Twice', 'n times', 'n × n times'], 0,
+      'One pass, with a quick map lookup per element. That\'s why it\'s O(n), and why it beats checking every pair.'],
+    ['In Java, which one gives the length of the String <code>s</code>?',
+      ['s.length', 's.length()', 's.size()', 'len(s)'], 1,
+      'Strings use the method <code>length()</code>. Arrays use the field <code>length</code> with no parentheses. ArrayList (s05) uses <code>size()</code>. Three spellings, one idea.']
+  ];
+  const quizEl = document.getElementById('quiz');
+  const answered = store.get('quiz') || {};
+  let right = 0;
+  quiz.forEach(([q, opts, ans, why], qi) => {
+    const box = document.createElement('div'); box.className = 'q';
+    box.innerHTML = '<p><b>' + (qi + 1) + '.</b> ' + q + '</p><div class="opts"></div><p class="explain" hidden></p>';
+    const optsEl = box.querySelector('.opts'), ex = box.querySelector('.explain');
+    const buttons = opts.map((o, oi) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'opt'; b.textContent = o;
+      b.addEventListener('click', () => choose(oi)); optsEl.appendChild(b); return b;
+    });
+    function choose(oi, silent) {
+      buttons.forEach((b, k) => { b.disabled = true; if (k === ans) b.classList.add('right'); if (k === oi && oi !== ans) b.classList.add('wrong'); });
+      ex.hidden = false;
+      ex.innerHTML = (oi === ans ? '<b style="color:var(--good)">Right.</b> ' : '<b style="color:var(--bad)">Not quite.</b> ') + why;
+      if (oi === ans) right++;
+      if (!silent) { answered[qi] = oi; store.set('quiz', answered); }
+      document.getElementById('score').textContent = right + ' / ' + quiz.length;
+    }
+    if (answered[qi] !== undefined && answered[qi] !== null) choose(answered[qi], true);
+    quizEl.appendChild(box);
+  });
+
+  function tick(id) { const b = document.getElementById(id); if (b && !b.checked) { b.checked = true; updateMission(); } }
+})();
+</script>

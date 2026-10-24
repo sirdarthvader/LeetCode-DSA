@@ -1,0 +1,690 @@
+<title>DSA Roadmap Tracker</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a transit map. Top band = "next station" card (with its LeetCode problems) + show-up grid; below, tabs for the lines, the problem bank and the redo queue. Shared course tokens. */
+:root {
+  --bg: #F3F5F9; --surface: #FFFFFF; --surface-2: #E8ECF2; --ink: #131C2B; --muted: #566377; --rule: #D5DBE4;
+  --accent: #2A56E0; --accent-ink: #FFFFFF; --accent-soft: #DCE5FF;
+  --mark: #FFD447; --mark-ink: #1D1700; --good: #137D55; --good-soft: #D6F2E5; --bad: #B83A33; --bad-soft: #F8DEDC;
+  --warn: #A66300; --warn-soft: #FBE9C8;
+  --empty: #E1E6ED; --show: #9FD9BE; --full: #137D55;
+  --display: 'Bricolage Grotesque', 'Avenir Next', system-ui, sans-serif;
+  --body: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0C121A; --surface: #141C27; --surface-2: #1C2633; --ink: #E6EBF2; --muted: #93A0B2; --rule: #273345;
+  --accent: #7C9CFF; --accent-ink: #0C121A; --accent-soft: #1E2A4D;
+  --mark: #F2C94C; --mark-ink: #1D1700; --good: #4CC38A; --good-soft: #143326; --bad: #F07A72; --bad-soft: #3A1B1A;
+  --warn: #F0B35A; --warn-soft: #3A2A12;
+  --empty: #1E2834; --show: #2C6B50; --full: #4CC38A; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0C121A; --surface: #141C27; --surface-2: #1C2633; --ink: #E6EBF2; --muted: #93A0B2; --rule: #273345;
+  --accent: #7C9CFF; --accent-ink: #0C121A; --accent-soft: #1E2A4D;
+  --mark: #F2C94C; --mark-ink: #1D1700; --good: #4CC38A; --good-soft: #143326; --bad: #F07A72; --bad-soft: #3A1B1A;
+  --warn: #F0B35A; --warn-soft: #3A2A12;
+  --empty: #1E2834; --show: #2C6B50; --full: #4CC38A; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.55 var(--body); }
+.wrap { max-width: 1080px; margin: 0 auto; padding-block: 32px 80px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 32px; }
+h1, h2, h3 { font-family: var(--display); line-height: 1.1; text-wrap: balance; margin: 0; }
+p { margin: 0; }
+button, select { font: inherit; }
+button { cursor: pointer; }
+a { color: var(--accent); }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.eyebrow { font: 600 0.72rem/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.muted { color: var(--muted); }
+.btn { border: 1px solid var(--rule); background: var(--surface); color: var(--ink); padding: 9px 14px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+.btn:hover:not(:disabled) { border-color: var(--accent); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn.go { background: var(--good); color: var(--accent-ink); border-color: var(--good); }
+.btn:disabled { opacity: 0.45; cursor: default; }
+
+header.top { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+header.top h1 { font-size: clamp(2rem, 5vw, 3rem); font-weight: 800; letter-spacing: -0.02em; }
+.sync { font: 0.75rem var(--mono); color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
+.sync::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.sync[data-s="ok"]::before { background: var(--good); }
+.sync[data-s="err"]::before { background: var(--bad); }
+
+.band { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 820px) { .band { grid-template-columns: 1fr; } }
+.panel { background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; padding: 22px; display: grid; gap: 14px; align-content: start; min-width: 0; }
+
+.station-card .sid { font: 600 0.8rem var(--mono); display: inline-flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.pill { padding: 3px 8px; border-radius: 99px; font: 600 0.7rem/1.2 var(--mono); letter-spacing: 0.04em; }
+.pill.next { background: var(--mark); color: var(--mark-ink); }
+.pill.done { background: var(--good-soft); color: var(--good); }
+.pill.later { background: var(--surface-2); color: var(--muted); }
+.station-card h2 { font-size: clamp(1.5rem, 3.2vw, 2.1rem); font-weight: 700; }
+.station-card .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.station-card .phase-line { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: var(--muted); }
+.swatch { width: 14px; height: 6px; border-radius: 3px; flex: none; }
+.sub { font: 600 0.72rem/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
+
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.stat { display: grid; gap: 2px; align-content: start; }
+.stat b { font: 700 1.7rem/1 var(--display); font-variant-numeric: tabular-nums; }
+.stat span { font-size: 0.78rem; color: var(--muted); line-height: 1.3; }
+.overall { height: 10px; border-radius: 99px; background: var(--surface-2); overflow: hidden; }
+.overall i { display: block; height: 100%; background: var(--good); width: 0; transition: width .4s; }
+
+.grid-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.days { display: grid; grid-template-columns: repeat(7, minmax(0, 30px)); gap: 6px; }
+.dow { font: 0.65rem var(--mono); color: var(--muted); text-align: center; }
+.day { aspect-ratio: 1; max-width: 100%; border-radius: 5px; background: var(--empty); }
+.day[data-k="show"] { background: var(--show); }
+.day[data-k="session"] { background: var(--full); }
+.day.today { outline: 2px solid var(--ink); outline-offset: 1px; }
+.day.future { background: transparent; border: 1px dashed var(--rule); }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.75rem; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+
+/* problem rows */
+.probs { display: grid; }
+.prob { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; padding: 10px 0; border-top: 1px solid var(--rule); }
+.prob-main { flex: 1 1 240px; min-width: 0; display: grid; gap: 3px; }
+.prob-title { display: flex; gap: 8px; align-items: baseline; min-width: 0; }
+.prob-title a { color: var(--ink); text-decoration: none; font-weight: 600; }
+.prob-title a:hover { color: var(--accent); text-decoration: underline; }
+.prob-title .num { font: 0.78rem var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; flex: none; }
+.prob-meta { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; font-size: 0.78rem; color: var(--muted); }
+.diff { font: 700 0.66rem/1 var(--mono); padding: 4px 6px; border-radius: 4px; flex: none; letter-spacing: 0.04em; }
+.diff.E { background: var(--good-soft); color: var(--good); }
+.diff.M { background: var(--warn-soft); color: var(--warn); }
+.diff.H { background: var(--bad-soft); color: var(--bad); }
+.prob-ctrl { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.status { padding: 6px 8px; border-radius: 7px; border: 1px solid var(--rule); background: var(--surface); color: var(--ink); font-size: 0.85rem; max-width: 100%; }
+.status[data-s="done"] { border-color: var(--good); background: var(--good-soft); }
+.status[data-s="hint"] { border-color: var(--warn); background: var(--warn-soft); }
+.status[data-s="solution"] { border-color: var(--bad); background: var(--bad-soft); }
+.conf { display: inline-flex; gap: 3px; align-items: center; }
+.conf button { width: 22px; height: 22px; border-radius: 5px; border: 1px solid var(--rule); background: var(--surface); color: var(--muted); font: 600 0.7rem var(--mono); padding: 0; }
+.conf button.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.conf button:disabled { cursor: default; opacity: 0.5; }
+.peek { border: 0; background: none; color: var(--accent); padding: 0; font-size: 0.78rem; text-decoration: underline; }
+.idea { font-size: 0.85rem; background: var(--surface-2); padding: 6px 10px; border-radius: 6px; flex-basis: 100%; }
+.tag { font: 600 0.72rem var(--mono); color: var(--muted); border: 1px solid var(--rule); border-radius: 4px; padding: 1px 5px; background: none; }
+button.tag:hover { border-color: var(--accent); color: var(--accent); }
+.due { font: 0.74rem var(--mono); }
+.due.now { color: var(--bad); font-weight: 600; }
+
+/* tabs */
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--rule); flex-wrap: wrap; }
+.tab { border: 0; background: none; color: var(--muted); padding: 10px 14px; font-weight: 600; border-bottom: 3px solid transparent; margin-bottom: -1px; display: inline-flex; gap: 8px; align-items: center; }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+.count-badge { font: 700 0.7rem/1 var(--mono); background: var(--bad); color: #fff; border-radius: 99px; padding: 3px 7px; }
+.count-badge.zero { background: var(--surface-2); color: var(--muted); }
+
+/* the map */
+.map { display: grid; gap: 10px; }
+.line { display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 16px; align-items: center; padding: 14px 0; border-top: 1px solid var(--rule); }
+@media (max-width: 700px) { .line { grid-template-columns: 1fr; gap: 10px; } }
+.line-name { display: grid; gap: 4px; }
+.line-name h3 { font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.line-name .count { font: 0.75rem var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.badge { font: 700 0.7rem/1 var(--mono); color: #fff; padding: 4px 6px; border-radius: 4px; flex: none; }
+.track { display: flex; flex-wrap: wrap; row-gap: 12px; align-items: center; }
+.stop { position: relative; display: flex; align-items: center; }
+.stop + .stop::before { content: ""; width: 14px; height: 4px; background: var(--c); opacity: 0.35; }
+.stop.reached + .stop::before, .stop.reached::before { opacity: 1; }
+.dot { width: 24px; height: 24px; border-radius: 50%; border: 4px solid var(--c); background: var(--surface); padding: 0; display: grid; place-items: center; transition: transform .15s; }
+.dot.cp { border-radius: 6px; }
+.dot:hover { transform: scale(1.18); }
+.stop.done .dot { background: var(--c); }
+.stop.done .dot::after { content: ""; width: 6px; height: 10px; border: solid #fff; border-width: 0 2.5px 2.5px 0; transform: translateY(-1px) rotate(45deg); }
+.stop.next .dot { box-shadow: 0 0 0 4px var(--mark); }
+.stop.next .dot::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--c); animation: pulse 1.6s ease-in-out infinite; }
+.stop.sel .dot { outline: 2px solid var(--ink); outline-offset: 3px; }
+.stop.has-lc .dot { box-shadow: inset 0 0 0 2px var(--surface); }
+@keyframes pulse { 50% { transform: scale(0.4); opacity: 0.5; } }
+.locked { opacity: 0.6; }
+.locked .track { font-size: 0.88rem; color: var(--muted); }
+
+/* bank */
+.bank-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.bank-stats .stat { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 12px 14px; }
+.bar { height: 6px; border-radius: 99px; background: var(--surface-2); overflow: hidden; margin-top: 6px; }
+.bar i { display: block; height: 100%; }
+.filters { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { border: 1px solid var(--rule); background: var(--surface); color: var(--ink); border-radius: 99px; padding: 6px 12px; font-size: 0.85rem; font-weight: 500; }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.group-h { display: flex; align-items: center; gap: 8px; margin-top: 18px; font-family: var(--display); font-weight: 700; font-size: 1rem; }
+.empty { padding: 18px 0; color: var(--muted); }
+
+.rules { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px 22px; }
+.rule { display: grid; gap: 2px; }
+.rule b { font-family: var(--display); font-size: 1rem; }
+.rule span { font-size: 0.88rem; color: var(--muted); }
+.notice { background: var(--surface-2); border-radius: 10px; padding: 12px 14px; font-size: 0.88rem; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<main class="wrap">
+  <header class="top">
+    <div style="display:grid; gap:8px">
+      <div class="eyebrow">Java · data structures & algorithms · 127 stations · 118 problems</div>
+      <h1>DSA Roadmap Tracker</h1>
+    </div>
+    <span class="sync" id="sync" data-s="wait">Loading your progress…</span>
+  </header>
+
+  <div class="notice" id="notice" hidden></div>
+
+  <div class="band">
+    <section class="panel station-card" aria-live="polite" id="card"></section>
+    <section class="panel">
+      <div class="stats">
+        <div class="stat"><b id="st-done">0</b><span>stations reached of 127</span></div>
+        <div class="stat"><b id="st-days">0</b><span>days you showed up</span></div>
+        <div class="stat"><b id="st-back">0</b><span>comebacks after a gap</span></div>
+      </div>
+      <div class="overall" aria-hidden="true"><i id="overall"></i></div>
+      <div class="grid-head">
+        <h3 style="font-size:1rem">Last 5 weeks</h3>
+        <button class="btn go" id="showup" type="button">I showed up today</button>
+      </div>
+      <div class="days" id="days"></div>
+      <div class="legend"><span><i style="background:var(--show)"></i>showed up (10 min counts)</span><span><i style="background:var(--full)"></i>finished a session</span></div>
+    </section>
+  </div>
+
+  <section style="display:grid; gap:18px">
+    <div class="tabs" role="tablist" aria-label="Views">
+      <button class="tab" role="tab" id="tab-map" aria-selected="true" aria-controls="view-map">The lines</button>
+      <button class="tab" role="tab" id="tab-bank" aria-selected="false" aria-controls="view-bank">Problem bank</button>
+      <button class="tab" role="tab" id="tab-redo" aria-selected="false" aria-controls="view-redo">Redo queue <span class="count-badge zero" id="redo-count">0</span></button>
+    </div>
+    <div id="view-map" role="tabpanel" aria-labelledby="tab-map" class="map"></div>
+    <div id="view-bank" role="tabpanel" aria-labelledby="tab-bank" hidden style="display:grid; gap:16px">
+      <div class="bank-stats" id="bank-stats"></div>
+      <div class="filters" id="filters"></div>
+      <div id="bank-list"></div>
+    </div>
+    <div id="view-redo" role="tabpanel" aria-labelledby="tab-redo" hidden style="display:grid; gap:16px">
+      <p class="muted" style="max-width:65ch">Redo from scratch, without notes. Problems you needed a hint or the solution for come back the next day. Problems you solved on your own come back after 1 week, then 3 weeks. Pass both and the pattern is locked in.</p>
+      <div id="redo-list"></div>
+      <h3 style="font-size:1rem; margin-top:8px">Coming up in the next 7 days</h3>
+      <div id="soon-list"></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h3 style="font-size:1.2rem">House rules</h3>
+    <div class="rules">
+      <div class="rule"><b>Sessions, not days</b><span>No schedule to fall behind on. You're only ever on the next station.</span></div>
+      <div class="rule"><b>Ten minutes counts</b><span>Bad day? Run one test, read one hint, press "I showed up".</span></div>
+      <div class="rule"><b>Never miss twice</b><span>One missed day is normal. After a gap, say "I'm back" and get a short re-entry.</span></div>
+      <div class="rule"><b>Done is a green test</b><span>Not "I understand everything". Green, then stop.</span></div>
+      <div class="rule"><b>30 minutes, then a hint</b><span>Stuck for 30 minutes? Take a hint. Still stuck? Read the solution, then re-implement it from scratch tomorrow. That's real learning.</span></div>
+      <div class="rule"><b>Count patterns, not problems</b><span>If you can't redo a problem a week later, it didn't stick yet. The redo queue is where it sticks.</span></div>
+      <div class="rule"><b>Redo days</b><span>Once a week, learn nothing new. Clear the redo queue instead.</span></div>
+      <div class="rule"><b>Park rabbit holes</b><span>Write it in PARKING_LOT.md and keep going. Checkpoints clear the list.</span></div>
+    </div>
+  </section>
+</main>
+
+<script>
+(function () {
+  const PHASES = [
+    { name: 'Java Ground', c: '#2A56E0' },
+    { name: 'Math & Complexity', c: '#E0812A' },
+    { name: 'Arrays, Strings, Sorting', c: '#1D9A8A' },
+    { name: 'Lists, Stacks, Queues', c: '#C4378A' },
+    { name: 'Recursion & Backtracking', c: '#7A4FD6' },
+    { name: 'Trees & Heaps', c: '#3E9B3A' },
+    { name: 'Graphs', c: '#D14B3A' },
+    { name: 'Dynamic Programming', c: '#B8860B' },
+    { name: 'Greedy & Intervals', c: '#3B8BD0' },
+    { name: 'Advanced Toolkit', c: '#8A5A3C' },
+    { name: 'Interview Mode', c: '#5D6B7E' }
+  ];
+  const RAW = [
+    [0, 'Hello Java: TS → Java with Two Sum'], [0, 'Types: primitives, overflow, String, == vs .equals'], [0, 'Memory model: stack, heap, references'], [0, 'Classes & objects: fields, constructors, static'], [0, 'Collections tour: ArrayList, HashMap, HashSet'], [0, 'Generics, interfaces, Comparable & Comparator'], [0, 'Exceptions, null, and writing your own tests'], [0, 'Recursion I: watch the call stack'],
+    [1, 'Big-O: counting steps'], [1, 'Logarithms: the halving superpower'], [1, 'Sums & series: why nested loops are n²'], [1, 'Space complexity & amortized cost'], [1, 'Number basics: modulo, digits, GCD, primes'], [1, 'Binary & bitwise operators'],
+    [2, 'Arrays in memory: in-place reverse & rotate'], [2, 'How HashMap really works'], [2, 'Frequency counting: anagrams, majority'], [2, 'Two pointers I: from both ends'], [2, 'Two pointers II: slow & fast writer'], [2, 'Sliding window I: fixed size'], [2, 'Sliding window II: grow & shrink'], [2, 'Prefix sums'], [2, 'Strings: StringBuilder, char math'], [2, 'Matrices: spiral, rotate'], [2, 'Sorting I: bubble, selection, insertion'], [2, 'Sorting II: merge sort'], [2, 'Sorting III: quicksort'], [2, 'Binary search I: the classic'], [2, 'Binary search II: boundaries'], [2, 'Binary search III: search the answer'], [2, 'Checkpoint'],
+    [3, 'Build a singly linked list'], [3, 'Reverse a linked list'], [3, 'Fast & slow pointers'], [3, 'Merging lists & the dummy node'], [3, 'Doubly linked list → LRU cache'], [3, 'Stacks: valid parentheses'], [3, 'Stack design: min stack, RPN'], [3, 'Monotonic stack'], [3, 'Queues & deques'], [3, 'Monotonic deque: window maximum'], [3, 'Checkpoint'],
+    [4, 'Recursion II: trust the subproblem'], [4, 'Counting math: permutations, combinations'], [4, 'Subsets'], [4, 'Permutations'], [4, 'Combination sum'], [4, 'Grid backtracking: word search, N-Queens'], [4, 'Memoization: the bridge to DP'], [4, 'Checkpoint'],
+    [5, 'Tree vocabulary: build a binary tree'], [5, 'DFS traversals: pre, in, post'], [5, 'Iterative traversals with a stack'], [5, 'BFS: level order'], [5, 'Tree recursion: height, diameter'], [5, 'Path problems'], [5, 'Binary search trees'], [5, 'BST II: delete, kth, LCA'], [5, 'Build & serialize trees'], [5, 'Heaps: a tree in an array'], [5, 'PriorityQueue: top-k'], [5, 'Two heaps: running median'], [5, 'Merge k sorted lists'], [5, 'Tries'], [5, 'Balanced trees & TreeMap'], [5, 'Checkpoint'],
+    [6, 'Graph vocabulary & adjacency lists'], [6, 'DFS on graphs'], [6, 'BFS & unweighted shortest path'], [6, 'Grids as graphs: islands'], [6, 'Multi-source BFS'], [6, 'Cycle detection'], [6, 'Topological sort'], [6, 'Union-Find'], [6, "Dijkstra's shortest path"], [6, 'Bellman-Ford'], [6, 'Minimum spanning trees'], [6, 'Bipartite graphs'], [6, 'Floyd-Warshall'], [6, 'Bridges & articulation points'], [6, 'Strongly connected components'], [6, 'Checkpoint'],
+    [7, 'DP mindset: state, transition, base'], [7, '1D DP: stairs, house robber'], [7, '1D DP: coin change, decode ways'], [7, 'Longest increasing subsequence'], [7, 'Grid DP'], [7, 'String DP: LCS & edit distance'], [7, '0/1 knapsack'], [7, 'Unbounded knapsack'], [7, 'Palindrome DP'], [7, 'Interval DP'], [7, 'DP on trees'], [7, 'State-machine DP: stocks'], [7, 'Bitmask DP'], [7, 'Word break & pattern matching'], [7, 'Space-optimized DP'], [7, 'Digit DP'], [7, 'Checkpoint'],
+    [8, 'Greedy & how to prove it'], [8, 'Intervals: merge, insert'], [8, 'Sweep line: meeting rooms'], [8, 'Jump game & gas station'], [8, 'Scheduling & Huffman'], [8, 'Checkpoint'],
+    [9, 'Bit tricks'], [9, 'Fast power & modular arithmetic'], [9, 'Randomized: shuffle, reservoir'], [9, 'String hashing: Rabin-Karp'], [9, 'Pattern matching: KMP'], [9, 'Segment tree I'], [9, 'Segment tree II: lazy'], [9, 'Fenwick tree'], [9, 'Ordered sets: TreeMap patterns'], [9, 'Design: LFU cache, rate limiter'], [9, 'Geometry basics'], [9, 'Checkpoint'],
+    [10, 'The interview framework'], [10, 'Timed mixed set 1'], [10, 'Timed mixed set 2'], [10, 'Timed mixed set 3'], [10, 'Timed mixed set 4'], [10, 'Timed mixed set 5'], [10, 'Timed mixed set 6'], [10, 'Timed mixed set 7'], [10, 'Timed mixed set 8'], [10, 'Final boss: full mock interview']
+  ];
+  // [LeetCode #, title, difficulty, session, slug, key idea], from the 10-week Google prep sheet's Question Bank
+  const PROBLEMS = [
+    [1, "Two Sum", "E", "s01", "two-sum", "Hash map of value to index, one pass"],
+    [217, "Contains Duplicate", "E", "s05", "contains-duplicate", "Set membership"],
+    [36, "Valid Sudoku", "M", "s16", "valid-sudoku", "Sets per row, column and 3x3 box"],
+    [242, "Valid Anagram", "E", "s17", "valid-anagram", "Character counts, or compare sorted strings"],
+    [49, "Group Anagrams", "M", "s17", "group-anagrams", "Key = sorted string or count tuple"],
+    [128, "Longest Consecutive Sequence", "M", "s17", "longest-consecutive-sequence", "Put all in a set, start counting only at sequence starts (O(n))"],
+    [347, "Top K Frequent Elements", "M", "s17", "top-k-frequent-elements", "Frequency map, then heap or bucket sort"],
+    [125, "Valid Palindrome", "E", "s18", "valid-palindrome", "Two pointers, skip non-alphanumerics"],
+    [167, "Two Sum II - Input Array Is Sorted", "M", "s18", "two-sum-ii-input-array-is-sorted", "Sorted array: move pointers inward by comparing sum"],
+    [11, "Container With Most Water", "M", "s18", "container-with-most-water", "Always move the shorter wall inward"],
+    [75, "Sort Colors", "M", "s19", "sort-colors", "Dutch national flag with three pointers"],
+    [15, "3Sum", "M", "s19", "3sum", "Sort, fix one number, two pointers, skip duplicates"],
+    [438, "Find All Anagrams in a String", "M", "s20", "find-all-anagrams-in-a-string", "Fixed-size sliding window with counts"],
+    [3, "Longest Substring Without Repeating Characters", "M", "s21", "longest-substring-without-repeating-characters", "Sliding window with a set or last-seen map"],
+    [424, "Longest Repeating Character Replacement", "M", "s21", "longest-repeating-character-replacement", "Window valid while length - maxFreq <= k"],
+    [76, "Minimum Window Substring", "H", "s21", "minimum-window-substring", "Window with need/have counts, shrink when valid"],
+    [560, "Subarray Sum Equals K", "M", "s22", "subarray-sum-equals-k", "Prefix sum plus hash map of prefix counts"],
+    [238, "Product of Array Except Self", "M", "s22", "product-of-array-except-self", "Prefix and suffix products, no division"],
+    [5, "Longest Palindromic Substring", "M", "s23", "longest-palindromic-substring", "Expand around each centre"],
+    [54, "Spiral Matrix", "M", "s24", "spiral-matrix", "Shrink the four boundaries layer by layer"],
+    [48, "Rotate Image", "M", "s24", "rotate-image", "Transpose, then reverse each row"],
+    [74, "Search a 2D Matrix", "M", "s28", "search-a-2d-matrix", "Treat the matrix as one sorted 1D array"],
+    [34, "Find First and Last Position of Element in Sorted Array", "M", "s29", "find-first-and-last-position-of-element-in-sorted-array", "Two binary searches: lower bound and upper bound"],
+    [33, "Search in Rotated Sorted Array", "M", "s29", "search-in-rotated-sorted-array", "Identify the sorted half, decide which side to keep"],
+    [153, "Find Minimum in Rotated Sorted Array", "M", "s29", "find-minimum-in-rotated-sorted-array", "Compare mid with the right end"],
+    [875, "Koko Eating Bananas", "M", "s30", "koko-eating-bananas", "Binary search on the answer (speed), feasibility check"],
+    [1011, "Capacity To Ship Packages Within D Days", "M", "s30", "capacity-to-ship-packages-within-d-days", "Binary search on capacity, greedy feasibility check"],
+    [525, "Contiguous Array", "M", "s31", "contiguous-array", "Treat 0 as -1, store first index of each prefix sum"],
+    [523, "Continuous Subarray Sum", "M", "s31", "continuous-subarray-sum", "Prefix sum mod k, store first index of each remainder"],
+    [974, "Subarray Sums Divisible by K", "M", "s31", "subarray-sums-divisible-by-k", "Count prefix remainders, handle negative mods"],
+    [42, "Trapping Rain Water", "H", "s31", "trapping-rain-water", "Two pointers tracking left max and right max"],
+    [206, "Reverse Linked List", "E", "s33", "reverse-linked-list", "prev/curr/next pointers; then do it recursively"],
+    [141, "Linked List Cycle", "E", "s34", "linked-list-cycle", "Fast and slow pointers"],
+    [142, "Linked List Cycle II", "M", "s34", "linked-list-cycle-ii", "After they meet, reset one pointer to head and step together"],
+    [19, "Remove Nth Node From End of List", "M", "s34", "remove-nth-node-from-end-of-list", "Pointers n apart, dummy node"],
+    [21, "Merge Two Sorted Lists", "E", "s35", "merge-two-sorted-lists", "Dummy head node, advance the smaller side"],
+    [2, "Add Two Numbers", "M", "s35", "add-two-numbers", "Digit by digit with a carry"],
+    [143, "Reorder List", "M", "s35", "reorder-list", "Find middle, reverse second half, interleave"],
+    [146, "LRU Cache", "M", "s36", "lru-cache", "Hash map plus doubly linked list"],
+    [394, "Decode String", "M", "s37", "decode-string", "Stack of (count, string so far)"],
+    [155, "Min Stack", "M", "s38", "min-stack", "Stack of (value, current min)"],
+    [150, "Evaluate Reverse Polish Notation", "M", "s38", "evaluate-reverse-polish-notation", "Stack evaluation"],
+    [739, "Daily Temperatures", "M", "s39", "daily-temperatures", "Monotonic decreasing stack of indices"],
+    [496, "Next Greater Element I", "E", "s39", "next-greater-element-i", "Monotonic stack plus a map"],
+    [84, "Largest Rectangle in Histogram", "H", "s39", "largest-rectangle-in-histogram", "Monotonic increasing stack, compute widths on pop"],
+    [239, "Sliding Window Maximum", "H", "s41", "sliding-window-maximum", "Monotonic deque of indices"],
+    [138, "Copy List with Random Pointer", "M", "s42", "copy-list-with-random-pointer", "Hash map old to new node, or interleave copies"],
+    [78, "Subsets", "M", "s45", "subsets", "Include/exclude choice at each index"],
+    [90, "Subsets II", "M", "s45", "subsets-ii", "Sort, skip duplicates at the same level"],
+    [46, "Permutations", "M", "s46", "permutations", "Backtrack with a used array"],
+    [17, "Letter Combinations of a Phone Number", "M", "s46", "letter-combinations-of-a-phone-number", "Digit to letters map, DFS"],
+    [39, "Combination Sum", "M", "s47", "combination-sum", "Reuse allowed: recurse with the same index"],
+    [22, "Generate Parentheses", "M", "s47", "generate-parentheses", "Track open and close counts"],
+    [79, "Word Search", "M", "s48", "word-search", "DFS with visited marking, undo on return"],
+    [131, "Palindrome Partitioning", "M", "s48", "palindrome-partitioning", "Backtrack on cut positions, palindrome check"],
+    [104, "Maximum Depth of Binary Tree", "E", "s51", "maximum-depth-of-binary-tree", "1 + max(left, right)"],
+    [226, "Invert Binary Tree", "E", "s52", "invert-binary-tree", "Swap children recursively"],
+    [100, "Same Tree", "E", "s52", "same-tree", "Recurse on both trees in parallel"],
+    [102, "Binary Tree Level Order Traversal", "M", "s54", "binary-tree-level-order-traversal", "BFS with a queue, loop over the level size"],
+    [199, "Binary Tree Right Side View", "M", "s54", "binary-tree-right-side-view", "BFS: last node of each level"],
+    [543, "Diameter of Binary Tree", "E", "s55", "diameter-of-binary-tree", "Height DFS, track left + right"],
+    [572, "Subtree of Another Tree", "E", "s55", "subtree-of-another-tree", "Run isSameTree at every node"],
+    [124, "Binary Tree Maximum Path Sum", "H", "s56", "binary-tree-maximum-path-sum", "DFS returns best downward path, update global using both sides"],
+    [98, "Validate Binary Search Tree", "M", "s57", "validate-binary-search-tree", "Pass (low, high) bounds down the recursion"],
+    [230, "Kth Smallest Element in a BST", "M", "s58", "kth-smallest-element-in-a-bst", "Iterative inorder, stop at k"],
+    [235, "Lowest Common Ancestor of a Binary Search Tree", "M", "s58", "lowest-common-ancestor-of-a-binary-search-tree", "Use BST ordering to go left or right"],
+    [236, "Lowest Common Ancestor of a Binary Tree", "M", "s58", "lowest-common-ancestor-of-a-binary-tree", "Return node if found on both sides"],
+    [105, "Construct Binary Tree from Preorder and Inorder Traversal", "M", "s59", "construct-binary-tree-from-preorder-and-inorder-traversal", "Preorder gives the root, inorder index map splits it"],
+    [297, "Serialize and Deserialize Binary Tree", "H", "s59", "serialize-and-deserialize-binary-tree", "Preorder with null markers"],
+    [703, "Kth Largest Element in a Stream", "E", "s60", "kth-largest-element-in-a-stream", "Min-heap of size k"],
+    [215, "Kth Largest Element in an Array", "M", "s61", "kth-largest-element-in-an-array", "Min-heap of size k, or quickselect"],
+    [973, "K Closest Points to Origin", "M", "s61", "k-closest-points-to-origin", "Max-heap of size k on distance"],
+    [295, "Find Median from Data Stream", "H", "s62", "find-median-from-data-stream", "Two heaps: max-heap low half, min-heap high half"],
+    [23, "Merge k Sorted Lists", "H", "s63", "merge-k-sorted-lists", "Min-heap of the k list heads"],
+    [208, "Implement Trie (Prefix Tree)", "M", "s64", "implement-trie-prefix-tree", "Node with children map and end-of-word flag"],
+    [211, "Design Add and Search Words Data Structure", "M", "s64", "design-add-and-search-words-data-structure", "Trie plus DFS branching on '.'"],
+    [133, "Clone Graph", "M", "s68", "clone-graph", "DFS/BFS with old to new node map"],
+    [547, "Number of Provinces", "M", "s68", "number-of-provinces", "Union-find or DFS to count components"],
+    [1091, "Shortest Path in Binary Matrix", "M", "s69", "shortest-path-in-binary-matrix", "BFS on the grid with 8 directions"],
+    [127, "Word Ladder", "H", "s69", "word-ladder", "BFS over one-letter transformations"],
+    [200, "Number of Islands", "M", "s70", "number-of-islands", "DFS/BFS flood fill on the grid"],
+    [695, "Max Area of Island", "M", "s70", "max-area-of-island", "DFS returning area"],
+    [417, "Pacific Atlantic Water Flow", "M", "s70", "pacific-atlantic-water-flow", "BFS inward from both oceans, intersect"],
+    [994, "Rotting Oranges", "M", "s71", "rotting-oranges", "Multi-source BFS counting minutes"],
+    [207, "Course Schedule", "M", "s72", "course-schedule", "Cycle detection, or Kahn's topological sort"],
+    [210, "Course Schedule II", "M", "s73", "course-schedule-ii", "Kahn's algorithm, return the order"],
+    [684, "Redundant Connection", "M", "s74", "redundant-connection", "Union-find: the edge joining two nodes already connected"],
+    [743, "Network Delay Time", "M", "s75", "network-delay-time", "Dijkstra with a min-heap"],
+    [787, "Cheapest Flights Within K Stops", "M", "s76", "cheapest-flights-within-k-stops", "Bellman-Ford for k+1 rounds, or BFS/Dijkstra with stops"],
+    [1584, "Min Cost to Connect All Points", "M", "s77", "min-cost-to-connect-all-points", "Minimum spanning tree: Kruskal + union-find, or Prim"],
+    [785, "Is Graph Bipartite?", "M", "s78", "is-graph-bipartite", "BFS/DFS two-colouring"],
+    [70, "Climbing Stairs", "E", "s83", "climbing-stairs", "dp[i] = dp[i-1] + dp[i-2]"],
+    [198, "House Robber", "M", "s84", "house-robber", "At each house: rob (skip previous) or skip"],
+    [53, "Maximum Subarray", "M", "s84", "maximum-subarray", "Kadane's algorithm"],
+    [152, "Maximum Product Subarray", "M", "s84", "maximum-product-subarray", "Track both running max and min product"],
+    [322, "Coin Change", "M", "s85", "coin-change", "dp over amounts, minimum coins"],
+    [91, "Decode Ways", "M", "s85", "decode-ways", "DP over the string, 1 or 2 digit steps"],
+    [300, "Longest Increasing Subsequence", "M", "s86", "longest-increasing-subsequence", "O(n^2) DP first, then O(n log n) with binary search"],
+    [62, "Unique Paths", "M", "s87", "unique-paths", "Grid DP from top and left"],
+    [64, "Minimum Path Sum", "M", "s87", "minimum-path-sum", "Grid DP taking the min of top and left"],
+    [1143, "Longest Common Subsequence", "M", "s88", "longest-common-subsequence", "2D DP over two strings"],
+    [72, "Edit Distance", "M", "s88", "edit-distance", "2D DP: insert, delete, replace"],
+    [416, "Partition Equal Subset Sum", "M", "s89", "partition-equal-subset-sum", "0/1 knapsack to reach sum/2"],
+    [494, "Target Sum", "M", "s89", "target-sum", "Transform to subset-sum count, or DFS with memo"],
+    [647, "Palindromic Substrings", "M", "s91", "palindromic-substrings", "Expand around each centre and count"],
+    [337, "House Robber III", "M", "s93", "house-robber-iii", "DFS returns (rob, skip) pair per node"],
+    [139, "Word Break", "M", "s96", "word-break", "dp[i] true if some word ends at i"],
+    [763, "Partition Labels", "M", "s100", "partition-labels", "Last-occurrence map, extend the current end"],
+    [56, "Merge Intervals", "M", "s101", "merge-intervals", "Sort by start, merge overlaps"],
+    [57, "Insert Interval", "M", "s101", "insert-interval", "Add before, merge overlapping, add after"],
+    [435, "Non-overlapping Intervals", "M", "s101", "non-overlapping-intervals", "Sort by end, greedily keep earliest-ending"],
+    [986, "Interval List Intersections", "M", "s102", "interval-list-intersections", "Two pointers over both sorted lists"],
+    [55, "Jump Game", "M", "s103", "jump-game", "Track the farthest reachable index"],
+    [45, "Jump Game II", "M", "s103", "jump-game-ii", "Greedy BFS-style ranges"],
+    [134, "Gas Station", "M", "s103", "gas-station", "If total gas >= cost, restart the start when the tank goes negative"],
+    [621, "Task Scheduler", "M", "s104", "task-scheduler", "Greedy on max frequency, or heap with cooldown"],
+    [981, "Time Based Key-Value Store", "M", "s114", "time-based-key-value-store", "Map key to sorted list, binary search on timestamp"],
+    [380, "Insert Delete GetRandom O(1)", "M", "s115", "insert-delete-getrandom-o1", "Array plus index map, swap with last on delete"]
+  ];
+  const LESSONS = {
+    s01: 'https://claude.ai/artifact/2oTPdJFotTcFL957FQzhGf'
+  };
+  const STATUS = { '': 'Not started', done: 'Done on my own', hint: 'Done with hint', solution: 'Read solution' };
+  const DIFF = { E: 'Easy', M: 'Medium', H: 'Hard' };
+
+  const SESSIONS = RAW.map(([p, t], i) => ({ id: 's' + String(i + 1).padStart(2, '0'), n: i + 1, p, t, cp: t === 'Checkpoint' }));
+  const BY_ID = Object.fromEntries(SESSIONS.map(s => [s.id, s]));
+  const PROBS = PROBLEMS.map(([lc, name, d, s, slug, idea]) => ({ lc, id: 'lc' + lc, name, d, s, slug, idea }));
+  const PROBS_BY_SESSION = {};
+  PROBS.forEach(p => (PROBS_BY_SESSION[p.s] = PROBS_BY_SESSION[p.s] || []).push(p));
+
+  let done = new Map(), checkins = new Map(), probState = new Map();
+  let selected = null, db = null, busy = false, loaded = { s: false, c: false, p: false };
+  let view = 'map', filter = 'all';
+  const peeked = new Set();
+
+  const pad = n => String(n).padStart(2, '0');
+  const ymd = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  const today = () => ymd(new Date());
+  const addDays = (key, n) => { const d = new Date(key + 'T12:00'); d.setDate(d.getDate() + n); return ymd(d); };
+  const nextUp = () => SESSIONS.find(s => !done.has(s.id));
+  const $ = id => document.getElementById(id);
+  const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+
+  // Spaced redo: a hint or the solution brings it back tomorrow. Solving it alone moves it up a stage: back in 7 days, then 21, then locked in.
+  function nextState(prev, status, t) {
+    const base = prev ? (prev.lastD === t ? (prev.base || 0) : (prev.stage || 0)) : 0;
+    let stage, due;
+    if (status === 'done') { stage = Math.min(base + 1, 3); due = stage === 1 ? addDays(t, 7) : stage === 2 ? addDays(t, 21) : null; }
+    else { stage = 0; due = addDays(t, 1); }
+    const history = ((prev && prev.history) || []).filter(h => h.d !== t).concat([{ d: t, s: status }]).slice(-20);
+    return { status, stage, due, base, lastD: t, confidence: prev && prev.confidence ? prev.confidence : null, history };
+  }
+  const isDue = st => st && st.due && st.due <= today();
+  const redoReason = st => st.stage === 0 ? (st.status === 'solution' ? 'Read the solution: re-implement from scratch' : 'Needed a hint: try it alone') : st.stage === 1 ? '1-week check: redo without notes' : '3-week check: last one';
+
+  function setSync(state, text) { const e = $('sync'); e.dataset.s = state; e.textContent = text; }
+  function notice(msg) { const n = $('notice'); n.hidden = !msg; n.textContent = msg || ''; }
+
+  // ----- one problem row, used in the card, the bank and the redo queue -----
+  function probRow(p, opts) {
+    opts = opts || {};
+    const st = probState.get(p.id);
+    const row = el('div', 'prob');
+    const main = el('div', 'prob-main');
+    const title = el('div', 'prob-title');
+    title.appendChild(el('span', 'diff ' + p.d, DIFF[p.d]));
+    title.appendChild(el('span', 'num', p.lc + '.'));
+    const a = el('a', null, p.name); a.href = 'https://leetcode.com/problems/' + p.slug + '/'; a.target = '_blank'; a.rel = 'noopener';
+    title.appendChild(a);
+    main.appendChild(title);
+    const meta = el('div', 'prob-meta');
+    if (opts.showSession) {
+      const tag = el('button', 'tag', p.s); tag.type = 'button'; tag.title = BY_ID[p.s].t;
+      tag.addEventListener('click', () => { selected = p.s; render(); $('card').scrollIntoView({ behavior: 'smooth', block: 'nearest' }); });
+      meta.appendChild(tag);
+    }
+    if (st && st.due) {
+      const now = isDue(st);
+      meta.appendChild(el('span', 'due' + (now ? ' now' : ''), now ? (opts.reason ? redoReason(st) : 'redo due') : 'redo ' + st.due));
+    } else if (st && st.stage >= 3) meta.appendChild(el('span', 'due', 'locked in ✓'));
+    const peek = el('button', 'peek', peeked.has(p.id) ? 'Hide key idea' : 'Key idea (spoiler)'); peek.type = 'button';
+    peek.addEventListener('click', () => { peeked.has(p.id) ? peeked.delete(p.id) : peeked.add(p.id); render(); });
+    meta.appendChild(peek);
+    main.appendChild(meta);
+    row.appendChild(main);
+
+    const ctrl = el('div', 'prob-ctrl');
+    const sel = el('select', 'status'); sel.id = 'st-' + opts.scope + '-' + p.id;
+    sel.setAttribute('aria-label', 'Status for ' + p.name);
+    Object.entries(STATUS).forEach(([k, v]) => { const o = el('option', null, v); o.value = k; sel.appendChild(o); });
+    sel.value = st ? st.status : ''; sel.dataset.s = sel.value;
+    sel.disabled = !db || busy;
+    sel.addEventListener('change', () => setStatus(p, sel.value));
+    ctrl.appendChild(sel);
+    const conf = el('span', 'conf'); conf.setAttribute('role', 'group'); conf.setAttribute('aria-label', 'Confidence 1 to 5');
+    for (let i = 1; i <= 5; i++) {
+      const b = el('button', st && st.confidence === i ? 'on' : '', String(i)); b.type = 'button';
+      b.title = 'Confidence ' + i + ' of 5'; b.disabled = !db || busy || !st;
+      b.addEventListener('click', () => setConfidence(p, i));
+      conf.appendChild(b);
+    }
+    ctrl.appendChild(conf);
+    row.appendChild(ctrl);
+    if (peeked.has(p.id)) row.appendChild(el('div', 'idea', p.idea));
+    return row;
+  }
+
+  // ----- station card -----
+  function renderCard() {
+    const nx = nextUp();
+    const s = selected ? BY_ID[selected] : nx;
+    const card = $('card'); card.innerHTML = '';
+    if (!s) { card.appendChild(el('div', 'eyebrow', 'All 127 stations reached')); card.appendChild(el('h2', null, 'Line complete.')); card.appendChild(el('p', 'muted', 'You did the whole thing. Time for Track 2: System Design.')); return; }
+    const ph = PHASES[s.p], isDone = done.has(s.id), isNext = nx && nx.id === s.id;
+    const sid = el('div', 'sid', s.id + ' ');
+    sid.appendChild(el('span', 'pill ' + (isDone ? 'done' : isNext ? 'next' : 'later'), isDone ? 'reached ' + (done.get(s.id).doneAt || '') : isNext ? 'next station' : 'ahead'));
+    card.appendChild(sid);
+    card.appendChild(el('h2', null, s.t));
+    const pl = el('div', 'phase-line'); const sw = el('span', 'swatch'); sw.style.background = ph.c; pl.appendChild(sw); pl.appendChild(document.createTextNode('Phase ' + s.p + ' · ' + ph.name)); card.appendChild(pl);
+    const help = el('p', 'muted');
+    const acts = el('div', 'actions');
+    if (LESSONS[s.id]) {
+      const a = el('a', 'btn primary', 'Open lesson ↗'); a.href = LESSONS[s.id]; a.target = '_blank'; a.rel = 'noopener'; acts.appendChild(a);
+      help.textContent = isDone ? 'Revisit any time. Your notes are in notes/' + s.id + '.md.' : 'Lesson is ready. Open it, make the tests green, then mark this station reached.';
+    } else help.textContent = isDone ? 'Reached.' : 'In Claude Code, say "next session" and the lesson for this station gets built for you.';
+    card.appendChild(help);
+    const b = el('button', 'btn' + (isDone ? '' : ' go'), isDone ? 'Undo' : 'Mark reached'); b.type = 'button'; b.disabled = !db || busy;
+    b.addEventListener('click', () => isDone ? undo(s.id) : markDone(s.id)); acts.appendChild(b);
+    if (selected && nx && selected !== nx.id) {
+      const back = el('button', 'btn', 'Back to next station'); back.type = 'button';
+      back.addEventListener('click', () => { selected = null; render(); }); acts.appendChild(back);
+    }
+    card.appendChild(acts);
+    const list = PROBS_BY_SESSION[s.id];
+    if (list) {
+      card.appendChild(el('div', 'sub', 'LeetCode practice · ' + list.length + (list.length === 1 ? ' problem' : ' problems')));
+      const probs = el('div', 'probs'); list.forEach(p => probs.appendChild(probRow(p, { scope: 'card' }))); card.appendChild(probs);
+    }
+  }
+
+  // ----- the lines -----
+  function renderMap() {
+    const nx = nextUp();
+    const map = $('view-map'); map.innerHTML = '';
+    PHASES.forEach((ph, pi) => {
+      const list = SESSIONS.filter(s => s.p === pi);
+      const nDone = list.filter(s => done.has(s.id)).length;
+      const nProb = PROBS.filter(p => BY_ID[p.s].p === pi).length;
+      const row = el('div', 'line'); row.style.setProperty('--c', ph.c);
+      const name = el('div', 'line-name');
+      const h = el('h3'); const bd = el('span', 'badge', 'P' + pi); bd.style.background = ph.c; h.appendChild(bd); h.appendChild(el('span', null, ph.name)); name.appendChild(h);
+      name.appendChild(el('span', 'count', nDone + ' / ' + list.length + ' · ' + list[0].id + '–' + list[list.length - 1].id + (nProb ? ' · ' + nProb + ' LC' : '')));
+      row.appendChild(name);
+      const track = el('div', 'track');
+      list.forEach(s => {
+        const stop = el('div', 'stop');
+        if (done.has(s.id)) stop.classList.add('done', 'reached');
+        if (nx && nx.id === s.id) stop.classList.add('next');
+        if (selected === s.id) stop.classList.add('sel');
+        const dot = el('button', 'dot' + (s.cp ? ' cp' : '')); dot.type = 'button';
+        const nP = (PROBS_BY_SESSION[s.id] || []).length;
+        dot.title = s.id + ' · ' + s.t + (nP ? ' · ' + nP + ' LeetCode' : '') + (LESSONS[s.id] ? ' · lesson ready' : '');
+        dot.setAttribute('aria-label', dot.title + (done.has(s.id) ? ', reached' : ''));
+        dot.addEventListener('click', () => { selected = s.id; render(); $('card').scrollIntoView({ behavior: 'smooth', block: 'nearest' }); });
+        stop.appendChild(dot); track.appendChild(stop);
+      });
+      row.appendChild(track);
+      map.appendChild(row);
+    });
+    const t2 = el('div', 'line locked');
+    t2.innerHTML = '<div class="line-name"><h3><span class="badge" style="background:var(--muted)">T2</span>System Design</h3><span class="count">planned</span></div><div class="track">Unlocks after Phase 3. Networking, databases, caching, queues, scaling. Includes your design set from the prep sheet: URL shortener, chat system, rate limiter.</div>';
+    map.appendChild(t2);
+  }
+
+  // ----- problem bank -----
+  const FILTERS = [['all', 'All'], ['todo', 'Not started'], ['redo', 'Needs redo'], ['done', 'Solved on my own'], ['locked', 'Locked in']];
+  function matches(p) {
+    const st = probState.get(p.id);
+    if (filter === 'todo') return !st;
+    if (filter === 'redo') return st && st.stage === 0;
+    if (filter === 'done') return st && st.status === 'done';
+    if (filter === 'locked') return st && st.stage >= 3;
+    return true;
+  }
+  function renderBank() {
+    const stats = $('bank-stats'); stats.innerHTML = '';
+    const solo = p => { const st = probState.get(p.id); return st && st.status === 'done'; };
+    const card = (big, label, frac, color) => {
+      const s = el('div', 'stat'); s.appendChild(el('b', null, big)); s.appendChild(el('span', null, label));
+      if (frac != null) { const bar = el('div', 'bar'); const i = el('i'); i.style.width = (frac * 100) + '%'; i.style.background = color; bar.appendChild(i); s.appendChild(bar); }
+      stats.appendChild(s);
+    };
+    const nSolo = PROBS.filter(solo).length;
+    card(nSolo + ' / ' + PROBS.length, 'solved on your own', nSolo / PROBS.length, 'var(--good)');
+    ['E', 'M', 'H'].forEach(d => {
+      const all = PROBS.filter(p => p.d === d), n = all.filter(solo).length;
+      card(n + ' / ' + all.length, DIFF[d], n / all.length, d === 'E' ? 'var(--good)' : d === 'M' ? 'var(--warn)' : 'var(--bad)');
+    });
+    card(String([...probState.values()].filter(st => st.stage === 0).length), 'need a redo');
+    card(String([...probState.values()].filter(st => st.stage >= 3).length), 'locked in (passed both redos)');
+
+    const f = $('filters'); f.innerHTML = '';
+    FILTERS.forEach(([k, label]) => {
+      const c = el('button', 'chip', label); c.type = 'button'; c.setAttribute('aria-pressed', filter === k);
+      c.addEventListener('click', () => { filter = k; renderBank(); }); f.appendChild(c);
+    });
+    const list = $('bank-list'); list.innerHTML = '';
+    let shown = 0;
+    PHASES.forEach((ph, pi) => {
+      const ps = PROBS.filter(p => BY_ID[p.s].p === pi && matches(p));
+      if (!ps.length) return;
+      const h = el('div', 'group-h'); const bd = el('span', 'badge', 'P' + pi); bd.style.background = ph.c; h.appendChild(bd); h.appendChild(el('span', null, ph.name)); list.appendChild(h);
+      const box = el('div', 'probs'); ps.forEach(p => box.appendChild(probRow(p, { scope: 'bank', showSession: true }))); list.appendChild(box);
+      shown += ps.length;
+    });
+    if (!shown) list.appendChild(el('p', 'empty', filter === 'redo' ? 'Nothing needs a redo right now.' : filter === 'locked' ? 'Nothing locked in yet. A problem locks in after you solve it alone, then again 1 week and 3 weeks later.' : 'No problems match this filter yet.'));
+  }
+
+  // ----- redo queue -----
+  function renderRedo() {
+    const t = today(), soonEnd = addDays(t, 7);
+    const due = PROBS.filter(p => isDue(probState.get(p.id))).sort((a, b) => probState.get(a.id).due.localeCompare(probState.get(b.id).due));
+    const soon = PROBS.filter(p => { const st = probState.get(p.id); return st && st.due && st.due > t && st.due <= soonEnd; }).sort((a, b) => probState.get(a.id).due.localeCompare(probState.get(b.id).due));
+    const rl = $('redo-list'); rl.innerHTML = '';
+    if (due.length) { const box = el('div', 'probs'); due.forEach(p => box.appendChild(probRow(p, { scope: 'redo', showSession: true, reason: true }))); rl.appendChild(box); }
+    else rl.appendChild(el('p', 'empty', probState.size ? 'Nothing due today. Nice.' : 'Empty for now. As you work through problems, the ones worth redoing show up here on the right day.'));
+    const sl = $('soon-list'); sl.innerHTML = '';
+    if (soon.length) { const box = el('div', 'probs'); soon.forEach(p => box.appendChild(probRow(p, { scope: 'soon', showSession: true }))); sl.appendChild(box); }
+    else sl.appendChild(el('p', 'empty', 'Nothing scheduled this week.'));
+    const badge = $('redo-count'); badge.textContent = due.length; badge.classList.toggle('zero', !due.length);
+  }
+
+  // ----- show-up grid + stats -----
+  function renderDays() {
+    const days = $('days'); days.innerHTML = '';
+    ['M', 'T', 'W', 'T', 'F', 'S', 'S'].forEach(d => days.appendChild(el('div', 'dow', d)));
+    const now = new Date(); now.setHours(12, 0, 0, 0);
+    const dow = (now.getDay() + 6) % 7;
+    const start = new Date(now); start.setDate(now.getDate() - dow - 28);
+    const t = today();
+    for (let k = 0; k < 35; k++) {
+      const d = new Date(start); d.setDate(start.getDate() + k);
+      const key = ymd(d); const cell = el('div', 'day');
+      if (key > t) cell.classList.add('future');
+      if (key === t) cell.classList.add('today');
+      const kind = checkins.get(key); if (kind) cell.dataset.k = kind;
+      cell.title = key + (kind === 'session' ? ': finished a session' : kind === 'show' ? ': showed up' : '');
+      days.appendChild(cell);
+    }
+    const dates = [...checkins.keys()].sort();
+    let backs = 0;
+    for (let i = 1; i < dates.length; i++) {
+      const gap = (new Date(dates[i] + 'T12:00') - new Date(dates[i - 1] + 'T12:00')) / 864e5;
+      if (gap >= 3) backs++; // two or more missed days, then you came back
+    }
+    $('st-done').textContent = done.size;
+    $('st-days').textContent = checkins.size;
+    $('st-back').textContent = backs;
+    $('overall').style.width = (done.size / SESSIONS.length * 100) + '%';
+    const sb = $('showup');
+    sb.disabled = !db || busy || checkins.has(t);
+    sb.textContent = checkins.has(t) ? 'Showed up today ✓' : 'I showed up today';
+  }
+
+  function render() {
+    renderCard(); renderDays(); renderRedo();
+    if (view === 'map') renderMap(); else if (view === 'bank') renderBank();
+  }
+
+  // ----- tabs -----
+  ['map', 'bank', 'redo'].forEach(v => {
+    $('tab-' + v).addEventListener('click', () => {
+      view = v;
+      ['map', 'bank', 'redo'].forEach(w => { $('tab-' + w).setAttribute('aria-selected', w === v); $('view-' + w).hidden = w !== v; });
+      render();
+    });
+  });
+
+  // ----- writes -----
+  async function run(fn) {
+    if (!db || busy) return;
+    busy = true; render(); setSync('wait', 'Saving…');
+    try { await fn(); setSync('ok', 'Saved'); notice(''); }
+    catch (e) {
+      setSync('err', 'Not saved');
+      notice(e && e.code === 'invalid_argument' ? 'This view can read progress but not change it. Open the tracker from your own account to make changes.' : 'Couldn\'t save just now. Try again in a moment.');
+    }
+    busy = false; render();
+  }
+  async function showUp(kind) {
+    const t = today();
+    if (kind === 'session' ? checkins.get(t) !== 'session' : !checkins.has(t)) await db.collection('checkins').doc(t).set({ kind });
+  }
+  function markDone(id) {
+    run(async () => {
+      await db.collection('sessions').doc(id).set({ done: true, doneAt: today() });
+      await showUp('session');
+      if (selected === id) selected = null;
+    });
+  }
+  function undo(id) { run(() => db.collection('sessions').doc(id).delete()); }
+  function setStatus(p, status) {
+    run(async () => {
+      const ref = db.collection('problems').doc(p.id);
+      if (!status) await ref.delete();
+      else { await ref.set(nextState(probState.get(p.id), status, today())); await showUp('show'); }
+    });
+  }
+  function setConfidence(p, n) {
+    const st = probState.get(p.id); if (!st) return;
+    run(() => db.collection('problems').doc(p.id).update({ confidence: st.confidence === n ? null : n }));
+  }
+  $('showup').addEventListener('click', () => { if (!checkins.has(today())) run(() => showUp('show')); });
+
+  render();
+
+  // ----- connect -----
+  (async () => {
+    try { db = window.claude && window.claude.use ? await window.claude.use('db') : null; } catch (e) { db = null; }
+    if (!db) { setSync('err', 'Saving unavailable here'); notice('Progress can\'t be loaded in this view. Open the tracker on claude.ai while signed in to see and save your progress.'); render(); return; }
+    const settle = () => { if (loaded.s && loaded.c && loaded.p) setSync('ok', 'Up to date'); render(); };
+    const lost = () => { setSync('err', 'Lost connection'); notice('Lost the connection to your saved progress. Reload the page to reconnect.'); };
+    db.collection('sessions').onSnapshot(snap => { done = new Map(snap.docs.filter(d => d.exists).map(d => [d.id, d.data()])); loaded.s = true; settle(); }, lost);
+    db.collection('checkins').onSnapshot(snap => { checkins = new Map(snap.docs.filter(d => d.exists).map(d => [d.id, (d.data() || {}).kind])); loaded.c = true; settle(); }, lost);
+    db.collection('problems').onSnapshot(snap => { probState = new Map(snap.docs.filter(d => d.exists).map(d => [d.id, d.data()])); loaded.p = true; settle(); }, lost);
+  })();
+})();
+</script>
