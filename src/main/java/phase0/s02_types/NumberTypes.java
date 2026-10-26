@@ -18,7 +18,9 @@ public class NumberTypes {
      *   (careful: what is a + b here, before you divide?)
      */
     public static int average(int a, int b) {
-        throw new UnsupportedOperationException("TODO: implement average");
+      long sum = (long)a + b;
+      
+      return (int)(sum/2);
     }
 
     /**
@@ -28,7 +30,11 @@ public class NumberTypes {
      * fitsInInt(Integer.MIN_VALUE, -1) -> false
      */
     public static boolean fitsInInt(int a, int b) {
-        throw new UnsupportedOperationException("TODO: implement fitsInInt");
+      long sum = (long)a + b;
+      if(Integer.MIN_VALUE <= sum && sum <= Integer.MAX_VALUE) {
+        return true;
+      }
+      return false;
     }
 
     /**
@@ -38,6 +44,10 @@ public class NumberTypes {
      * factorial(20) -> 2432902008176640000
      */
     public static long factorial(int n) {
-        throw new UnsupportedOperationException("TODO: implement factorial");
+      long result = 1;
+      for(int i = 2; i <= n; i++) {
+        result *= i;
+      }
+      return result;
     }
 }

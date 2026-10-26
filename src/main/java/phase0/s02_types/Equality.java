@@ -16,7 +16,13 @@ public class Equality {
      * countChar("Hello", 'h')  -> 0
      */
     public static int countChar(String s, char c) {
-        throw new UnsupportedOperationException("TODO: implement countChar");
+      int count = 0;
+      for(int i = 0; i < s.length(); i++) {
+        if(s.charAt(i) == c) {
+          count++;
+        }
+      }
+      return count;
     }
 
     /**
@@ -25,7 +31,13 @@ public class Equality {
      * countMatches([], "cat")                    -> 0
      */
     public static int countMatches(String[] words, String target) {
-        throw new UnsupportedOperationException("TODO: implement countMatches");
+      int count = 0;
+      for(int i = 0; i < words.length; i++) {
+        if(words[i].equals(target)) {
+          count++;
+        }
+      }
+      return count;
     }
 
     /**
@@ -35,6 +47,14 @@ public class Equality {
      * sameValue(1000, 1001) -> false
      */
     public static boolean sameValue(Integer a, Integer b) {
-        throw new UnsupportedOperationException("TODO: implement sameValue");
+      if(a == null || b == null) {
+        throw new IllegalArgumentException("Arguments cannot be null");
+      }
+
+      if((-128 <= a && a <= 127) && (-128 <= b && b <= 127)) {
+        return a == b; // Use reference equality for small integers
+      } else {
+        return a.equals(b); // Use value equality for larger integers
+      }
     }
 }
