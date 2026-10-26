@@ -1,0 +1,761 @@
+<title>Classes & Objects · s04</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one reading column (~720px) of stacked "stations"; code and visualizers break out to full column width. Shared course tokens. */
+:root {
+  --bg: #F3F5F9; --surface: #FFFFFF; --surface-2: #E8ECF2; --ink: #131C2B; --muted: #566377; --rule: #D5DBE4;
+  --accent: #2A56E0; --accent-ink: #FFFFFF; --accent-soft: #DCE5FF;
+  --mark: #FFD447; --mark-ink: #1D1700; --good: #137D55; --good-soft: #D6F2E5; --bad: #B83A33; --bad-soft: #F8DEDC;
+  --cls-soft: #FFF3C4; --cls-line: #9A7A00;
+  --code-bg: #101826; --code-ink: #DCE4EF; --code-dim: #7D8BA0; --code-hi: rgba(255, 212, 71, 0.16);
+  --c-kw: #FF9E64; --c-ty: #7DCFFF; --c-str: #A6E3A1; --c-num: #F9E2AF; --c-fn: #CBA6F7;
+  --display: 'Bricolage Grotesque', 'Avenir Next', system-ui, sans-serif;
+  --body: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0C121A; --surface: #141C27; --surface-2: #1C2633; --ink: #E6EBF2; --muted: #93A0B2; --rule: #273345;
+  --accent: #7C9CFF; --accent-ink: #0C121A; --accent-soft: #1E2A4D;
+  --mark: #F2C94C; --mark-ink: #1D1700; --good: #4CC38A; --good-soft: #143326; --bad: #F07A72; --bad-soft: #3A1B1A;
+  --cls-soft: #2E2812; --cls-line: #C9A63A;
+  --code-bg: #0A0F17; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0C121A; --surface: #141C27; --surface-2: #1C2633; --ink: #E6EBF2; --muted: #93A0B2; --rule: #273345;
+  --accent: #7C9CFF; --accent-ink: #0C121A; --accent-soft: #1E2A4D;
+  --mark: #F2C94C; --mark-ink: #1D1700; --good: #4CC38A; --good-soft: #143326; --bad: #F07A72; --bad-soft: #3A1B1A;
+  --cls-soft: #2E2812; --cls-line: #C9A63A;
+  --code-bg: #0A0F17; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--ink); font: 16px/1.6 var(--body); }
+.wrap { max-width: 760px; margin: 0 auto; padding-block: 40px 96px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 56px; }
+h1, h2, h3 { font-family: var(--display); line-height: 1.1; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(2.6rem, 7vw, 4rem); font-weight: 800; letter-spacing: -0.02em; }
+h2 { font-size: 1.75rem; font-weight: 700; letter-spacing: -0.01em; }
+h3 { font-size: 1.15rem; font-weight: 700; }
+p { margin: 0; max-width: 65ch; }
+code, kbd { font-family: var(--mono); font-size: 0.88em; background: var(--surface-2); padding: 0.1em 0.35em; border-radius: 4px; }
+section { display: grid; gap: 18px; }
+.eyebrow { font: 600 0.75rem/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.eyebrow .tag { background: var(--mark); color: var(--mark-ink); padding: 4px 8px; border-radius: 3px; }
+.lede { font-size: 1.15rem; color: var(--muted); }
+.muted { color: var(--muted); }
+button { font: inherit; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.btn { border: 1px solid var(--rule); background: var(--surface); color: var(--ink); padding: 8px 14px; border-radius: 8px; font-weight: 600; font-size: 0.92rem; }
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn.on { background: var(--accent-soft); border-color: var(--accent); }
+.btn:disabled { opacity: 0.45; cursor: default; }
+.btn.mono { font-family: var(--mono); font-size: 0.84rem; }
+
+/* mission checklist */
+.mission { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 20px; display: grid; gap: 14px; }
+.mission-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.meter { height: 8px; background: var(--surface-2); border-radius: 99px; overflow: hidden; }
+.meter > i { display: block; height: 100%; width: 0; background: var(--good); transition: width .3s; }
+.mission ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.mission label { display: flex; gap: 12px; align-items: flex-start; padding: 6px 4px; border-radius: 6px; cursor: pointer; }
+.mission label:hover { background: var(--surface-2); }
+.mission input { width: 18px; height: 18px; margin-top: 3px; accent-color: var(--good); flex: none; }
+.mission input:checked + span { color: var(--muted); text-decoration: line-through; }
+.mins { font: 0.78rem var(--mono); color: var(--muted); margin-left: auto; white-space: nowrap; padding-left: 8px; }
+
+/* code */
+pre { margin: 0; background: var(--code-bg); color: var(--code-ink); font: 0.86rem/1.65 var(--mono); padding: 16px 18px; border-radius: 10px; overflow-x: auto; }
+pre code { background: none; padding: 0; font-size: inherit; color: inherit; }
+.kw { color: var(--c-kw); } .ty { color: var(--c-ty); } .str { color: var(--c-str); } .num { color: var(--c-num); } .fn { color: var(--c-fn); } .com { color: var(--code-dim); font-style: italic; }
+pre.lines { padding: 12px 8px; }
+.ln { display: block; padding: 0 10px; border-radius: 4px; white-space: pre; }
+.ln .no { display: inline-block; width: 2ch; margin-right: 14px; text-align: right; color: var(--code-dim); user-select: none; }
+.ln.cur { background: var(--code-hi); box-shadow: inset 3px 0 0 var(--mark); }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 620px) { .two { grid-template-columns: 1fr; } }
+.two > * { min-width: 0; }
+.cap { font: 600 0.72rem/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+
+/* panels shared */
+.viz { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 20px; display: grid; gap: 18px; }
+.viz-top { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.narr { font-size: 0.98rem; min-height: 4.8em; }
+.seg-label { font: 600 0.72rem/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+.rule-box { border: 1px solid var(--accent); background: var(--accent-soft); border-radius: 10px; padding: 14px 16px; display: grid; gap: 6px; }
+
+/* object factory */
+.stmts { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 8px; }
+.stmt { text-align: left; font: 0.82rem/1.4 var(--mono); padding: 9px 12px; border-radius: 8px; border: 1px solid var(--rule); background: var(--surface-2); color: var(--ink); display: flex; gap: 8px; align-items: center; }
+.stmt:hover { border-color: var(--accent); }
+.stmt .run { margin-left: auto; color: var(--muted); font-size: 0.75rem; }
+.stmt.done { border-color: var(--good); }
+.stmt.done .run { color: var(--good); }
+.log { min-height: 100%; }
+.log .err { color: #FF8A80; }
+.log .ok { color: var(--code-ink); }
+.log .d { color: var(--code-dim); }
+.mm { position: relative; display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: 44px; }
+.mm-col { display: grid; gap: 10px; align-content: start; min-width: 0; }
+.mm-arrows { position: absolute; left: 0; top: 0; pointer-events: none; overflow: visible; }
+.mm-arrows path { fill: none; stroke: var(--accent); stroke-width: 2.2; }
+.mm-arrows polygon { fill: var(--accent); }
+.frame { border: 1px solid var(--accent); box-shadow: inset 0 0 0 1px var(--accent); border-radius: 8px; background: var(--surface); padding: 8px 10px; display: grid; gap: 6px; }
+.frame h5 { margin: 0; font: 600 0.76rem/1.2 var(--mono); color: var(--accent); }
+.var { display: flex; align-items: center; justify-content: space-between; gap: 8px; font: 0.88rem var(--mono); min-width: 0; }
+.slot { min-width: 52px; height: 30px; padding: 0 8px; border-radius: 6px; background: var(--surface-2); border: 1px solid var(--rule); display: grid; place-items: center; font: 600 0.86rem var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pin { display: block; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
+.obj { border: 2px solid var(--accent); background: var(--accent-soft); border-radius: 8px; padding: 6px 10px 8px; display: grid; gap: 5px; max-width: 220px; }
+.obj .ot, .cls .ot { font: 600 0.7rem/1.2 var(--mono); letter-spacing: 0.04em; color: var(--muted); }
+.cls { border: 2px dashed var(--cls-line); background: var(--cls-soft); border-radius: 8px; padding: 6px 10px 8px; display: grid; gap: 5px; max-width: 220px; }
+.cls .slot { background: var(--surface); }
+.flash { animation: flash 1.1s ease-out; }
+@keyframes flash { from { background: var(--mark); color: var(--mark-ink); } }
+.empty { font: 0.82rem var(--mono); color: var(--muted); }
+.console { display: flex; gap: 10px; align-items: baseline; background: var(--code-bg); color: var(--code-ink); border-radius: 8px; padding: 10px 14px; font: 0.86rem var(--mono); white-space: pre-wrap; }
+.console .d { color: var(--code-dim); }
+.console.bad { color: #FF8A80; }
+.foot { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+.stepno { font: 600 0.8rem var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* sort game */
+.pool { display: flex; flex-wrap: wrap; gap: 8px; min-height: 44px; }
+.chip { border: 1px solid var(--rule); background: var(--surface); color: var(--ink); padding: 8px 12px; border-radius: 99px; font-size: 0.9rem; text-align: left; touch-action: manipulation; }
+.chip:hover { border-color: var(--accent); }
+.chip.on { background: var(--accent-soft); border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+.chip.placed { background: var(--good-soft); border-color: var(--good); cursor: default; }
+.chip.nope { animation: nope .4s; background: var(--bad-soft); border-color: var(--bad); }
+@keyframes nope { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+.bins { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 620px) { .bins { grid-template-columns: 1fr; } }
+.bin { border: 2px dashed var(--rule); border-radius: 12px; padding: 14px; display: grid; gap: 10px; align-content: start; min-height: 150px; background: var(--surface); }
+.bin.obj-bin { border-color: var(--accent); }
+.bin.cls-bin { border-color: var(--cls-line); background: var(--cls-soft); }
+.bin.over { box-shadow: 0 0 0 3px var(--accent); }
+.bin h3 { font-size: 1rem; }
+.bin .drop { justify-self: start; }
+.bin .got { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* this switch */
+.tsvg { width: 100%; max-width: 560px; height: auto; display: block; }
+.tsvg .box { fill: var(--surface); stroke: var(--rule); stroke-width: 1.5; }
+.tsvg .frm { fill: var(--surface); stroke: var(--accent); stroke-width: 2; }
+.tsvg .ob { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2; }
+.tsvg .sl { fill: var(--surface-2); stroke: var(--rule); stroke-width: 1; }
+.tsvg .sl.hot { fill: var(--mark); stroke: var(--mark); }
+.tsvg .sl.null { fill: var(--bad-soft); stroke: var(--bad); }
+.tsvg text { font-family: var(--mono); font-size: 13px; fill: var(--ink); }
+.tsvg text.on-mark { fill: var(--mark-ink); }
+.tsvg .lbl { font-size: 11px; fill: var(--muted); letter-spacing: 0.08em; }
+.tsvg .arrow { stroke: var(--accent); stroke-width: 2.2; fill: none; }
+.tsvg .head { fill: var(--accent); }
+.tsvg .arrow.bad { stroke: var(--bad); }
+.tsvg .head.bad { fill: var(--bad); }
+.svg-wrap { overflow-x: auto; }
+
+/* run */
+.term { background: var(--code-bg); color: var(--code-ink); border-radius: 10px; padding: 14px 16px; font: 0.82rem/1.6 var(--mono); overflow-x: auto; white-space: pre; }
+.term .r { color: #FF8A80; } .term .g { color: #8BE9A8; } .term .d { color: var(--code-dim); }
+.files { display: grid; gap: 10px; }
+.file { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 12px 16px; display: grid; grid-template-columns: 130px minmax(0, 1fr); gap: 12px; align-items: baseline; }
+@media (max-width: 520px) { .file { grid-template-columns: 1fr; gap: 4px; } }
+.file b { font-family: var(--mono); font-size: 0.92rem; }
+
+/* hints */
+.hint-set { border: 1px solid var(--rule); border-radius: 10px; background: var(--surface); }
+.hint-set > header { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 16px; flex-wrap: wrap; }
+.hint-set > header code { font-size: 0.9rem; }
+.hint-list { list-style: none; margin: 0; padding: 0 16px; display: grid; gap: 8px; }
+.hint-list li { border-left: 3px solid var(--mark); padding: 4px 0 4px 12px; }
+.hint-list li:last-child { margin-bottom: 14px; }
+.hint-group { font: 600 0.72rem/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-top: 8px; }
+
+/* errors */
+details { border: 1px solid var(--rule); border-radius: 10px; background: var(--surface); padding: 0 16px; }
+details + details { margin-top: -10px; }
+summary { cursor: pointer; padding: 12px 0; font: 600 0.9rem var(--mono); overflow-wrap: anywhere; }
+details > div { padding-bottom: 14px; display: grid; gap: 8px; }
+
+/* quiz */
+.q { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 18px; display: grid; gap: 12px; }
+.q .opts { display: grid; gap: 8px; }
+.opt { text-align: left; border: 1px solid var(--rule); background: var(--surface); color: var(--ink); padding: 10px 12px; border-radius: 8px; font-size: 0.95rem; }
+.opt:hover:not(:disabled) { border-color: var(--accent); }
+.opt.right { background: var(--good-soft); border-color: var(--good); }
+.opt.wrong { background: var(--bad-soft); border-color: var(--bad); }
+.opt:disabled { cursor: default; }
+.explain { font-size: 0.92rem; color: var(--muted); }
+.score { font: 600 1rem var(--mono); }
+.deck-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+.finish { border-top: 1px solid var(--rule); padding-top: 28px; display: grid; gap: 12px; }
+a { color: var(--accent); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+
+<main class="wrap">
+
+<header style="display:grid; gap:16px">
+  <div class="eyebrow"><span class="tag">s04</span> Phase 0 · Java Ground · session 4 of 127</div>
+  <h1>Classes &amp; objects</h1>
+  <p class="lede">So far every method you wrote was <code>static</code>, and you never once needed <code>new</code> to call one. Today you write classes of your own, make objects from them, and find out what that <code>static</code> word has been doing all along.</p>
+</header>
+
+<section aria-labelledby="m-h">
+  <div class="mission">
+    <div class="mission-head">
+      <h2 id="m-h" style="font-size:1.3rem">Today's mission</h2>
+      <span class="muted" id="m-count" style="font:0.85rem var(--mono)">0 / 7 · about 45 min</span>
+    </div>
+    <div class="meter" aria-hidden="true"><i id="m-bar"></i></div>
+    <ol id="mission">
+      <li><label><input type="checkbox" id="m1"><span>Object factory: run all 8 lines, in any order you like</span><span class="mins">8 min</span></label></li>
+      <li><label><input type="checkbox" id="m2"><span>Sort the boxes: put all 8 cards in the right bin</span><span class="mins">5 min</span></label></li>
+      <li><label><input type="checkbox" id="m3"><span>Flip the <code>this</code> switch both ways</span><span class="mins">2 min</span></label></li>
+      <li><label><input type="checkbox" id="m4"><span>Make <code>CounterTest</code> green</span><span class="mins">8 min</span></label></li>
+      <li><label><input type="checkbox" id="m5"><span>Make <code>PointTest</code> green</span><span class="mins">10 min</span></label></li>
+      <li><label><input type="checkbox" id="m6"><span>Make <code>TicketTest</code> green</span><span class="mins">8 min</span></label></li>
+      <li><label><input type="checkbox" id="m7"><span>Lock in: quiz, 3 lines in <code>notes/s04.md</code>, tick s04 in the tracker</span><span class="mins">5 min</span></label></li>
+    </ol>
+  </div>
+</section>
+
+<section aria-labelledby="c-h">
+  <div class="eyebrow">Part 1</div>
+  <h2 id="c-h">A class is a blueprint</h2>
+  <p>You've written JS classes in React code. A Java class is the same idea: a blueprint that says what boxes (<b>fields</b>) every object gets, and what it can do (<b>methods</b>). <code>new</code> stamps out an object from the blueprint and runs the <b>constructor</b> to set it up.</p>
+  <div class="two">
+    <div><div class="cap">JavaScript</div><pre><code id="js-code"></code></pre></div>
+    <div><div class="cap">Java</div><pre><code id="java-code"></code></pre></div>
+  </div>
+  <p>Three differences. Java fields are declared up front, with types. The constructor is named after the class and has no return type. And inside a method you can drop <code>this.</code>: plain <code>score</code> means this object's <code>score</code>.</p>
+</section>
+
+<section aria-labelledby="f-h">
+  <div class="eyebrow">Part 2</div>
+  <h2 id="f-h">Object factory</h2>
+  <p>This is your <code>main</code>. Click a line to run it, in any order you like, and watch the memory. Blue boxes are objects; there's one per <code>new</code>. The yellow box belongs to the class itself. Try running a line too early, too: the compiler will tell you off.</p>
+  <div class="viz">
+    <div class="two">
+      <div><div class="cap">Player.java</div><pre class="lines"><code id="f-class"></code></pre></div>
+      <div><div class="cap">main(), lines run so far</div><pre class="log"><code id="f-log"></code></pre></div>
+    </div>
+    <div class="stmts" id="f-stmts" role="group" aria-label="Lines you can run"></div>
+    <div class="mm" id="mm">
+      <div class="mm-col">
+        <div class="cap">Stack · main()</div>
+        <div class="frame"><h5>main()</h5><div id="f-vars" style="display:grid; gap:6px"></div></div>
+      </div>
+      <div class="mm-col">
+        <div class="cap">Class box · static</div>
+        <div class="cls" id="f-cls"></div>
+        <div class="cap" style="margin-top:8px">Heap · objects</div>
+        <div class="mm-col" id="f-heap"></div>
+      </div>
+      <svg class="mm-arrows" id="f-arrows" aria-hidden="true"></svg>
+    </div>
+    <div class="console" id="f-console" hidden><span class="d">console ›</span><span id="f-out"></span></div>
+    <p class="narr" id="f-narr" aria-live="polite"></p>
+    <div class="foot">
+      <button class="btn" id="f-reset" type="button">Restart main()</button>
+      <span class="stepno" id="f-count">0 / 8 lines tried</span>
+    </div>
+  </div>
+  <div class="rule-box">
+    <p><b>The rule.</b> A plain field is <b>one box per object</b>: every <code>new</code> makes a fresh set. A <code>static</code> field is <b>one box for the whole class</b>, shared by every object, and it exists before any object does.</p>
+    <p>Same for methods. A plain method runs <em>on</em> an object (<code>a.addPoints(10)</code>) and can use its fields. A <code>static</code> method runs on the class (<code>Player.something()</code>) with no object at all. That's why <code>TwoSum.twoSum(nums, 9)</code> never needed a <code>new</code>.</p>
+  </div>
+</section>
+
+<section aria-labelledby="s-h">
+  <div class="eyebrow">Part 3</div>
+  <div class="deck-head">
+    <h2 id="s-h">Sort the boxes</h2>
+    <span class="score" id="s-score">0 / 8</span>
+  </div>
+  <p>One per object, or one for the whole class? Drag each card into a bin. On a phone, or if you'd rather click: tap a card, then tap a bin. One card is a trap.</p>
+  <div class="viz">
+    <div class="pool" id="s-pool" aria-label="Cards to sort"></div>
+    <div class="bins">
+      <div class="bin obj-bin" data-bin="obj">
+        <h3>One per object</h3>
+        <p class="muted" style="font-size:0.88rem">a plain field or method</p>
+        <button class="btn drop" type="button" data-drop="obj" disabled>Put it here</button>
+        <div class="got" id="s-obj"></div>
+      </div>
+      <div class="bin cls-bin" data-bin="cls">
+        <h3>One for the class</h3>
+        <p class="muted" style="font-size:0.88rem"><code>static</code></p>
+        <button class="btn drop" type="button" data-drop="cls" disabled>Put it here</button>
+        <div class="got" id="s-cls"></div>
+      </div>
+    </div>
+    <p class="narr" id="s-narr" aria-live="polite">Pick a card.</p>
+    <div class="viz-top"><button class="btn" id="s-reset" type="button">Shuffle and start over</button></div>
+  </div>
+</section>
+
+<section aria-labelledby="t-h">
+  <div class="eyebrow">Part 4</div>
+  <h2 id="t-h">The <code>this</code> switch</h2>
+  <p>The most common constructor bug in Java compiles fine and fails quietly. Flip between the two versions.</p>
+  <div class="viz">
+    <div class="viz-top" role="group" aria-label="Constructor body">
+      <span class="seg-label">Line 7</span>
+      <button class="btn mono" type="button" data-this="0">name = name;</button>
+      <button class="btn mono" type="button" data-this="1">this.name = name;</button>
+    </div>
+    <pre class="lines"><code id="t-code"></code></pre>
+    <div class="svg-wrap"><svg class="tsvg" id="t-svg" viewBox="0 0 560 180" role="img" aria-label="Where the value of name gets copied to"></svg></div>
+    <div class="console" id="t-console"><span class="d">new Player("Ada").name ›</span><span id="t-out"></span></div>
+    <p class="narr" id="t-narr" aria-live="polite"></p>
+  </div>
+</section>
+
+<section aria-labelledby="r-h">
+  <div class="eyebrow">Part 5</div>
+  <h2 id="r-h">Make the tests green</h2>
+  <p>Your files are in <code>src/main/java/phase0/s04_classes/</code>. This time you write the fields yourself. Two new words you'll need:</p>
+  <p><code>private</code> on a field means only code inside the class can touch it, like <code>#count</code> in a JS class. The tests can't write <code>c.count = 99</code>; they have to go through <code>increment()</code> and <code>value()</code>. The class decides what's allowed.</p>
+  <p><code>final</code> on a field means it's set once, in the constructor, and never again. <code>Point</code>'s fields are <code>public final</code>: anyone can read <code>p.x</code>, nobody can change it.</p>
+  <div class="files">
+    <div class="file"><b>Counter</b><span>Your first class: private fields, a constructor, methods that read and change this object's fields.</span></div>
+    <div class="file"><b>Point</b><span>Two constructors, <code>final</code> fields, a method that returns a new object instead of changing this one, and <code>toString</code>.</span></div>
+    <div class="file"><b>Ticket</b><span><code>static</code>: one number shared by all tickets, plus the fields each ticket keeps for itself.</span></div>
+  </div>
+  <pre><code>mvn -q test -Dtest=CounterTest
+mvn -q test -Dtest=PointTest
+mvn -q test -Dtest=TicketTest</code></pre>
+  <div class="two">
+    <div><div class="cap">A trap firing</div><div class="term"><span class="r">[ERROR] twoCountersAreIndependent:57</span>
+  expected: &lt;2&gt; but was: &lt;12&gt;</div></div>
+    <div><div class="cap">After: green</div><div class="term"><span class="d">$ mvn -q test -Dtest=TicketTest</span>
+<span class="d">$</span> <span class="g">▍</span>
+<span class="d">(no output = all passed)</span></div></div>
+  </div>
+</section>
+
+<section aria-labelledby="h-h">
+  <div class="eyebrow">Stuck?</div>
+  <h2 id="h-h">Hints, one at a time</h2>
+  <p>Give yourself 5 honest minutes on a method before opening a hint. Then take only one, and go try again.</p>
+  <div id="hints" style="display:grid; gap:12px"></div>
+</section>
+
+<section aria-labelledby="e-h">
+  <div class="eyebrow">Decoder</div>
+  <h2 id="e-h">Errors you'll probably meet today</h2>
+  <div>
+    <details><summary>expected: &lt;likes&gt; but was: &lt;null&gt;</summary><div><p>Your constructor says <code>label = label;</code>. That copies the parameter into itself and leaves the field at its default, <code>null</code>. Write <code>this.label = label;</code>. Part 4 shows it happening.</p></div></details>
+  </div>
+  <div>
+    <details><summary>twoCountersAreIndependent expected: &lt;2&gt; but was: &lt;12&gt;</summary><div><p>Your count field is <code>static</code>, so every Counter shares one box. Every other test is quietly adding to it too, which is why you see odd numbers like 11 or 12 that change when you run a single test. Remove <code>static</code> from the count.</p></div></details>
+  </div>
+  <div>
+    <details><summary>anOldTicketKeepsItsId expected: &lt;1&gt; but was: &lt;3&gt;</summary><div><p>That's the trap card from Part 3. <code>id()</code> is returning the shared counter, which keeps moving as new tickets are made. In the constructor, copy the counter's value into a per-ticket field, and have <code>id()</code> return that field.</p></div></details>
+  </div>
+  <div>
+    <details><summary>error: non-static variable count cannot be referenced from a static context</summary><div><p>A <code>static</code> method (<code>issued()</code> or <code>resetCount()</code>) is trying to read a per-object field. A static method runs with no object, so there's no "this ticket's" field to read. Either the field should be static too, or the method shouldn't be static.</p></div></details>
+  </div>
+  <div>
+    <details><summary>error: cannot find symbol &nbsp; symbol: variable count</summary><div><p>You're using a field you haven't declared yet. Fields go inside the class but outside any method, usually at the top: <code>private int count;</code>.</p></div></details>
+  </div>
+  <div>
+    <details><summary>error: cannot assign a value to final variable x</summary><div><p>Probably in <code>moved</code>: you tried <code>this.x = x + dx;</code>. A final field can't change after the constructor. Don't move this point; make a new one: <code>return new Point(...);</code>.</p></div></details>
+  </div>
+  <div>
+    <details><summary>error: variable x might not have been initialized</summary><div><p>Every constructor has to set every final field. Usually it's <code>Point()</code>: you left it empty, so <code>x</code> and <code>y</code> were never set. Set them to 0, or call the other constructor.</p></div></details>
+  </div>
+  <div>
+    <details><summary>error: call to this must be first statement in constructor</summary><div><p>Inside <code>Point()</code>, <code>this(0, 0);</code> has to be the very first line. Nothing can come before it.</p></div></details>
+  </div>
+  <div>
+    <details><summary>expected: &lt;(3, 4)&gt; but was: &lt;phase0.s04_classes.Point@1b6d3586&gt;</summary><div><p>Same thing you saw with arrays in s03: with no <code>toString</code> of your own, Java prints the class name and an id. Your <code>toString</code> must return a String built from <code>x</code> and <code>y</code>, with the brackets, comma and space.</p></div></details>
+  </div>
+</section>
+
+<section aria-labelledby="q-h">
+  <div class="eyebrow">Lock in</div>
+  <div class="deck-head">
+    <h2 id="q-h">Four quick questions</h2>
+    <span class="score" id="score">0 / 4</span>
+  </div>
+  <div id="quiz" style="display:grid; gap:12px"></div>
+</section>
+
+<section class="finish">
+  <h3>Done with all 7?</h3>
+  <p>Write three lines in <code>notes/s04.md</code>: the idea, when to use it, what tripped you up. Then tick s04 in your <a href="https://claude.ai/artifact/2GrTM6DxjxduvdujM6XEed" target="_blank" rel="noopener">Roadmap Tracker ↗</a>. If a "but why?" question is nagging you (why not make every field public? what's a <code>record</code>? what's <code>@Override</code> overriding?), put it in <code>PARKING_LOT.md</code>.</p>
+  <p class="muted">There's no LeetCode problem for this session. You'll meet today's ideas everywhere: LeetCode hands you classes like <code>ListNode</code> and <code>TreeNode</code> with public fields like your Point, and design problems ask you to write a whole class, the way you did Counter.</p>
+  <p class="muted">Next up: s05, the collections tour. <code>ArrayList</code>, <code>HashMap</code> and <code>HashSet</code> are classes just like yours. <code>new ArrayList&lt;&gt;()</code> is <code>new Counter("likes")</code> with more methods.</p>
+</section>
+
+</main>
+
+<script>
+(function () {
+  const store = {
+    get(k) { try { return JSON.parse(localStorage.getItem('s04:' + k)); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem('s04:' + k, JSON.stringify(v)); } catch (e) {} }
+  };
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+
+  // ----- mission checklist (per-viewer convenience) -----
+  const boxes = [...document.querySelectorAll('#mission input')];
+  const saved = store.get('mission') || {};
+  boxes.forEach(b => { b.checked = !!saved[b.id]; b.addEventListener('change', updateMission); });
+  function updateMission() {
+    const st = {}; let n = 0;
+    boxes.forEach(b => { st[b.id] = b.checked; if (b.checked) n++; });
+    store.set('mission', st);
+    $('m-count').textContent = n === boxes.length ? boxes.length + ' / ' + boxes.length + ' · session complete' : n + ' / ' + boxes.length + ' · about 45 min';
+    $('m-bar').style.width = (n / boxes.length * 100) + '%';
+  }
+  updateMission();
+  function tick(id) { const b = $(id); if (b && !b.checked) { b.checked = true; updateMission(); } }
+
+  // ----- syntax colouring: one pass, so keywords inside spans we add are never touched -----
+  const TOK = /(\/\/.*$)|("[^"\n]*")|(@Override)|\b(class|static|public|private|final|new|this|return|void|const)\b|\b(int|String|Player)\b|\b(System\.out\.println)\b|\b(\d+)\b/gm;
+  const KINDS = ['com', 'str', 'kw', 'kw', 'ty', 'fn', 'num'];
+  function H(code) {
+    let out = '', last = 0;
+    code.replace(TOK, (m, ...g) => {
+      const off = g[KINDS.length];
+      out += esc(code.slice(last, off)) + '<span class="' + KINDS[g.findIndex((x, i) => i < KINDS.length && x !== undefined)] + '">' + esc(m) + '</span>';
+      last = off + m.length;
+      return m;
+    });
+    return out + esc(code.slice(last));
+  }
+  const lines = (code, cur) => code.map((l, i) => '<span class="ln' + (cur.includes(i + 1) ? ' cur' : '') + '"><span class="no">' + (i + 1) + '</span>' + H(l) + '</span>').join('');
+
+  // ----- part 1: JS vs Java -----
+  $('js-code').innerHTML = H('class Player {\n  static online = 0;\n\n  constructor(name) {\n    this.name = name;\n    this.score = 0;\n    Player.online++;\n  }\n\n  addPoints(n) {\n    this.score += n;\n  }\n}\n\nconst a = new Player("Ada");');
+  const PLAYER = [
+    'class Player {',
+    '    static int online = 0;   // one box, owned by the class',
+    '    String name;             // one box per object',
+    '    int score;               // one box per object',
+    '',
+    '    Player(String name) {',
+    '        this.name = name;',
+    '        online++;',
+    '    }',
+    '',
+    '    void addPoints(int n) {',
+    '        score += n;',
+    '    }',
+    '}'];
+  $('java-code').innerHTML = H(PLAYER.join('\n') + '\n\nPlayer a = new Player("Ada");');
+
+  // ----- part 2: object factory -----
+  // State: vars maps a variable name to an object id; objs holds each object's fields.
+  const NAMES = { A: 'Ada', B: 'Lin' };
+  let S, prevSnap = null, outText = '', outBad = false;
+  const tried = new Set(store.get('factory') || []);
+  function fresh() { return { vars: {}, objs: {}, online: 0, log: [] }; }
+  const objOf = (v) => S.objs[S.vars[v]];
+  const ERR_UNDEF = (v) => 'error: cannot find symbol\n  symbol: variable ' + v;
+  const ERR_DUP = (v) => 'error: variable ' + v + ' is already defined in method main(String[])';
+  function makePlayer(v, id) {
+    if (S.vars[v]) return { err: ERR_DUP(v), say: 'Java won\'t let you declare ' + v + ' twice in one method. That\'s a compile error, so nothing ran. (To point ' + v + ' at a new object you\'d write ' + v + ' = new Player(...), without the type.)' };
+    S.objs[id] = { name: NAMES[id], score: 0 };
+    S.vars[v] = id;
+    S.online++;
+    return { hl: [6, 7, 8, 9], say: S.online === 1
+      ? 'new does three things. It makes a fresh Player on the heap, runs the constructor on it (lines 6–9), and hands back an arrow, which ' + v + ' stores. The constructor never set score, so Java filled it with 0: fields get a default (0, false or null). And online, the class\'s one box, went up to 1.'
+      : 'A second object, with its own name and score boxes. But there\'s still only one online box, because it belongs to the class, not to any object. Both constructors added 1 to it, so it\'s ' + S.online + '.' };
+  }
+  function addTo(v, n) {
+    if (!S.vars[v]) return { err: ERR_UNDEF(v), say: 'There\'s no ' + v + ' yet. Java checks every name before running anything, so this is a compile error. Run the line that declares ' + v + ' first.' };
+    const o = objOf(v);
+    o.score += n;
+    const who = o.name;
+    if (v === 'c') return { hl: [11, 12, 13], say: 'c points at the same object as a, so this is ' + who + '\'s score again, now ' + o.score + '. There is no separate "c\'s score": c is just another arrow, like the aliasing in s03.' };
+    return { hl: [11, 12, 13], say: v + '.addPoints(' + n + ') follows ' + v + '\'s arrow and runs addPoints on that object. Inside, plain score means this object\'s score, so only ' + who + '\'s changes, to ' + o.score + '. One method, written once, works on whichever object you call it on.' };
+  }
+  const STMTS = [
+    ['Player a = new Player("Ada");', () => makePlayer('a', 'A')],
+    ['Player b = new Player("Lin");', () => makePlayer('b', 'B')],
+    ['a.addPoints(10);', () => addTo('a', 10)],
+    ['b.addPoints(5);', () => addTo('b', 5)],
+    ['Player c = a;', () => {
+      if (S.vars.c) return { err: ERR_DUP('c'), say: 'c is already declared. A variable can only be declared once per method, so this didn\'t compile.' };
+      if (!S.vars.a) return { err: ERR_UNDEF('a'), say: 'There\'s no a to copy yet, so this doesn\'t compile. Make a first.' };
+      S.vars.c = S.vars.a;
+      return { say: 'No new, so no object is made, no constructor runs, and online stays at ' + S.online + '. c gets a copy of a\'s arrow: two arrows, one object.' };
+    }],
+    ['c.addPoints(1);', () => addTo('c', 1)],
+    ['System.out.println(Player.online);', () => ({ out: String(S.online), say: S.online === 0
+      ? 'Prints 0. No Player exists yet, but the class box does. A static field is there from the start, before any new.'
+      : 'Prints ' + S.online + '. You read a static field through the class name, with no object needed. It\'s ' + S.online + ' because new has run ' + S.online + ' time' + (S.online === 1 ? '' : 's') + '. Player c = a didn\'t count: no new.' })],
+    ['System.out.println(a.score);', () => {
+      if (!S.vars.a) return { err: ERR_UNDEF('a'), say: 'There\'s no a yet, so there\'s no score to print. Compile error.' };
+      const o = objOf('a');
+      return { out: String(o.score), say: 'Prints ' + o.score + '. a.score follows a\'s arrow and reads that object\'s score box. Each object answers for itself; for the class-wide number you ask the class, Player.online.' };
+    }]
+  ];
+  const stmtBtns = STMTS.map(([text], i) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'stmt';
+    b.innerHTML = '<span>' + esc(text) + '</span><span class="run" aria-hidden="true">▶ run</span>';
+    b.addEventListener('click', () => run(i));
+    $('f-stmts').appendChild(b); return b;
+  });
+  function snap() { return JSON.stringify({ vars: S.vars, objs: S.objs, online: S.online }); }
+  function run(i) {
+    const before = snap();
+    const res = STMTS[i][1]();
+    prevSnap = JSON.parse(before);
+    if (res.err) { outText = res.err; outBad = true; }
+    else {
+      S.log.push(STMTS[i][0]);
+      outText = res.out || ''; outBad = false;
+      tried.add(i); store.set('factory', [...tried]);
+      if (tried.size === STMTS.length) tick('m1');
+    }
+    drawFactory(res.hl || [], res.say);
+  }
+  function drawFactory(hl, say) {
+    $('f-class').innerHTML = lines(PLAYER, hl);
+    $('f-log').innerHTML = S.log.length
+      ? S.log.map(l => '<span class="ok">' + H(l) + '</span>').join('\n')
+      : '<span class="d">// click a line below to run it</span>';
+    const p = prevSnap || { vars: {}, objs: {}, online: S.online };
+    const vs = Object.keys(S.vars);
+    $('f-vars').innerHTML = vs.length ? vs.map(v => '<div class="var"><span>Player ' + v + '</span><span class="slot' + (p.vars[v] ? '' : ' flash') + '"><span class="pin" data-ref="' + S.vars[v] + '"></span></span></div>').join('')
+      : '<div class="empty">no variables yet</div>';
+    $('f-cls').innerHTML = '<div class="ot">Player · the class itself</div><div class="var"><span>static online</span><span class="slot' + (p.online !== S.online ? ' flash' : '') + '">' + S.online + '</span></div>';
+    const ids = Object.keys(S.objs);
+    $('f-heap').innerHTML = ids.length ? ids.map(id => {
+      const o = S.objs[id], old = p.objs[id];
+      const f = (k, shown) => '<div class="var"><span>' + k + '</span><span class="slot' + (!old || old[k] !== o[k] ? ' flash' : '') + '">' + esc(shown) + '</span></div>';
+      return '<div class="obj" data-id="' + id + '"><div class="ot">Player object</div>' + f('name', '"' + o.name + '"') + f('score', o.score) + '</div>';
+    }).join('') : '<div class="empty">no objects yet</div>';
+    $('f-console').hidden = !outText;
+    $('f-console').classList.toggle('bad', outBad);
+    $('f-out').textContent = outText;
+    $('f-narr').textContent = say || 'main() is empty and nothing is on the heap. But the class box is already there, with online at 0. Run any line.';
+    $('f-count').textContent = tried.size + ' / ' + STMTS.length + ' lines tried';
+    stmtBtns.forEach((b, i) => b.classList.toggle('done', tried.has(i)));
+    prevSnap = null;
+    drawArrows();
+  }
+  const mm = $('mm'), svg = $('f-arrows');
+  function drawArrows() {
+    const box = mm.getBoundingClientRect();
+    svg.setAttribute('width', box.width); svg.setAttribute('height', box.height);
+    svg.setAttribute('viewBox', '0 0 ' + box.width + ' ' + box.height);
+    const hits = {};
+    let g = '';
+    mm.querySelectorAll('.pin').forEach(pin => {
+      const id = pin.dataset.ref, obj = mm.querySelector('.obj[data-id="' + id + '"]');
+      if (!obj) return;
+      const a = pin.getBoundingClientRect(), o = obj.getBoundingClientRect();
+      const k = hits[id] = (hits[id] || 0) + 1;
+      const x1 = a.left + a.width / 2 - box.left, y1 = a.top + a.height / 2 - box.top;
+      const x2 = o.left - box.left - 1, y2 = o.top - box.top + Math.min(14 + (k - 1) * 12, o.height - 8);
+      const bend = Math.max(24, (x2 - x1) / 2);
+      g += '<path d="M' + x1 + ' ' + y1 + ' C' + (x1 + bend) + ' ' + y1 + ' ' + (x2 - bend) + ' ' + y2 + ' ' + (x2 - 9) + ' ' + y2 + '"></path>';
+      g += '<polygon points="' + x2 + ',' + y2 + ' ' + (x2 - 10) + ',' + (y2 - 5) + ' ' + (x2 - 10) + ',' + (y2 + 5) + '"></polygon>';
+    });
+    svg.innerHTML = g;
+  }
+  $('f-reset').addEventListener('click', () => { S = fresh(); outText = ''; drawFactory([], ''); });
+  if ('ResizeObserver' in window) new ResizeObserver(drawArrows).observe(mm);
+  else window.addEventListener('resize', drawArrows);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(drawArrows);
+  S = fresh(); drawFactory([], '');
+
+  // ----- part 3: sort the boxes -----
+  const CARDS = [
+    ['A song\'s title', 'obj', 'Every song has its own title. One box per object.'],
+    ['How many Song objects have been made', 'cls', 'One number about all songs, and no single song owns it. That\'s Player.online again.'],
+    ['MAX_SECONDS, the longest any song may be', 'cls', 'The same for every song, and it never changes, so it\'s static final. Java writes constants like this in CAPS.'],
+    ['A song\'s play count', 'obj', 'Each song is played a different number of times, so each needs its own box.'],
+    ['formatTime(int seconds), which only uses its argument', 'cls', 'It never touches any song\'s fields, so it doesn\'t need a song to run on. Every method you wrote in s01 to s03 was like this.'],
+    ['play(), which adds 1 to this song\'s play count', 'obj', 'It changes one particular song\'s field, so it needs a song: hit.play(). A plain method, like addPoints.'],
+    ['Each ticket\'s id number', 'obj', 'The trap. The id comes from a shared counter, but once it\'s handed out, each ticket keeps its own copy, which never changes. You\'ll build exactly this in Ticket.java.'],
+    ['The next id to hand out', 'cls', 'One number for the whole class, moving up every time a ticket is made. That one is static.']
+  ];
+  let placed = store.get('sort') || {}, order, picked = null;
+  function shuffle() { order = CARDS.map((c, i) => i).sort(() => Math.random() - 0.5); }
+  function drawSort(msg) {
+    const pool = $('s-pool'); pool.innerHTML = '';
+    $('s-obj').innerHTML = ''; $('s-cls').innerHTML = '';
+    order.forEach(i => {
+      const [text, bin] = CARDS[i];
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = text;
+      if (placed[i]) { b.classList.add('placed'); b.disabled = true; $(bin === 'obj' ? 's-obj' : 's-cls').appendChild(b); return; }
+      if (picked === i) b.classList.add('on');
+      b.draggable = true;
+      b.addEventListener('dragstart', (e) => { picked = i; e.dataTransfer.setData('text/plain', String(i)); });
+      b.addEventListener('click', () => { picked = picked === i ? null : i; drawSort(picked === null ? 'Pick a card.' : 'Now pick a bin for "' + text + '".'); });
+      b.dataset.i = i;
+      pool.appendChild(b);
+    });
+    const n = Object.keys(placed).length;
+    document.querySelectorAll('[data-drop]').forEach(b => { b.disabled = picked === null; });
+    $('s-score').textContent = n + ' / ' + CARDS.length;
+    $('s-narr').innerHTML = msg || (n === CARDS.length ? '<b style="color:var(--good)">All sorted.</b> Rule of thumb: if the answer could be different for two objects, it\'s one per object.' : 'Pick a card.');
+    if (n === CARDS.length) tick('m2');
+  }
+  function drop(bin) {
+    if (picked === null) return;
+    const i = picked, [, right, why] = CARDS[i];
+    picked = null;
+    if (bin === right) {
+      placed[i] = true; store.set('sort', placed);
+      drawSort('<b style="color:var(--good)">Right.</b> ' + esc(why));
+    } else {
+      drawSort('<b style="color:var(--bad)">Not that one.</b> ' + esc(why));
+      const chip = $('s-pool').querySelector('[data-i="' + i + '"]');
+      if (chip) chip.classList.add('nope');
+    }
+  }
+  document.querySelectorAll('[data-drop]').forEach(b => b.addEventListener('click', () => drop(b.dataset.drop)));
+  document.querySelectorAll('[data-bin]').forEach(bin => {
+    bin.addEventListener('dragover', (e) => { e.preventDefault(); bin.classList.add('over'); });
+    bin.addEventListener('dragleave', () => bin.classList.remove('over'));
+    bin.addEventListener('drop', (e) => { e.preventDefault(); bin.classList.remove('over'); const i = +e.dataTransfer.getData('text/plain'); if (!isNaN(i)) { picked = i; drop(bin.dataset.bin); } });
+  });
+  $('s-reset').addEventListener('click', () => { placed = {}; store.set('sort', placed); picked = null; shuffle(); drawSort(); });
+  shuffle(); drawSort();
+
+  // ----- part 4: the this switch -----
+  const seenThis = new Set(store.get('this') || []);
+  function drawThis(mode) {
+    document.querySelectorAll('[data-this]').forEach(b => b.classList.toggle('on', +b.dataset.this === mode));
+    $('t-code').innerHTML = lines(['Player(String name) {   // two boxes called name', mode ? '    this.name = name;' : '    name = name;', '    online++;', '}'], [2]);
+    const field = mode ? '"Ada"' : 'null';
+    let g = '<rect class="frm" x="16" y="50" width="210" height="58" rx="8"></rect>' +
+      '<text x="32" y="84">name</text><rect class="sl" x="112" y="64" width="96" height="30" rx="5"></rect><text x="160" y="84" text-anchor="middle">"Ada"</text>' +
+      '<text class="lbl" x="16" y="128">CONSTRUCTOR\'S FRAME</text>' +
+      '<rect class="ob" x="320" y="50" width="224" height="100" rx="8"></rect>' +
+      '<text x="336" y="84">name</text><rect class="sl ' + (mode ? 'hot' : 'null') + '" x="432" y="64" width="96" height="30" rx="5"></rect>' +
+      '<text' + (mode ? ' class="on-mark"' : '') + ' x="480" y="84" text-anchor="middle">' + esc(field) + '</text>' +
+      '<text x="336" y="128">score</text><rect class="sl" x="432" y="108" width="96" height="30" rx="5"></rect><text x="480" y="128" text-anchor="middle">0</text>' +
+      '<text class="lbl" x="320" y="170">THE NEW PLAYER OBJECT</text>';
+    if (mode) {
+      g += '<path class="arrow" d="M160 64 C170 8, 470 8, 480 54"></path><polygon class="head" points="480,64 475,53 485,53"></polygon>' +
+        '<text class="lbl" x="288" y="20">COPIES TO</text>';
+    } else {
+      g += '<path class="arrow bad" d="M180 64 C180 24, 140 24, 140 54"></path><polygon class="head bad" points="140,64 135,53 145,53"></polygon>' +
+        '<text class="lbl" x="196" y="36" style="fill:var(--bad)">COPIES INTO ITSELF</text>';
+    }
+    $('t-svg').innerHTML = g;
+    $('t-out').textContent = field;
+    $('t-narr').textContent = mode
+      ? 'this means "the object being built". this.name is the field, so "Ada" lands where it should. Write this.name whenever a parameter has the same name as a field. JS forces this. on you every time; Java lets you forget it.'
+      : 'Inside the constructor there are two boxes called name: the parameter and the field. Plain name means the nearest one, the parameter. So name = name copies the parameter into itself, and the field is left at null. Java compiles this without a word.';
+    seenThis.add(mode); store.set('this', [...seenThis]);
+    if (seenThis.size === 2) tick('m3');
+  }
+  document.querySelectorAll('[data-this]').forEach(b => b.addEventListener('click', () => drawThis(+b.dataset.this)));
+  drawThis(0);
+
+  // ----- hints -----
+  const hintSets = [
+    ['Counter', 'fields and constructor', [
+      'A field is a variable declared inside the class but outside every method: <code>private int count;</code>. You need one for the count and one for the label.',
+      'The constructor\'s parameter is called <code>label</code>, and so is your field. Part 4 is about exactly this: <code>this.label = label;</code>',
+      'You don\'t need to set the count to 0. An <code>int</code> field starts at 0 on its own.'
+    ]],
+    ['Counter', 'increment, add, value, label, reset', [
+      'Each of these is one line. Inside a method, plain <code>count</code> means this object\'s count.',
+      '<code>count++</code>, <code>count += n</code>, <code>return count;</code>. <code>reset</code> sets the count back to 0 and leaves the label alone.'
+    ]],
+    ['Point', 'Point(x, y) and Point()', [
+      'Same shape as the Counter constructor: copy each parameter into its field with <code>this.</code>, since the names clash.',
+      'For <code>Point()</code>, setting <code>this.x = 0; this.y = 0;</code> works and is fine.',
+      'The one-liner: a constructor can call another constructor of the same class with <code>this(0, 0);</code>. It has to be the first line.'
+    ]],
+    ['Point', 'manhattanTo', [
+      'You can read another Point\'s fields directly: <code>other.x</code>. Your own are plain <code>x</code>.',
+      'The distance across is the difference between the two x values, but it can come out negative. <code>Math.abs(n)</code> drops the minus sign.',
+      'Add the across distance and the up-down distance.'
+    ]],
+    ['Point', 'moved', [
+      'Your fields are final, so you can\'t change this point. Make a new one.',
+      '<code>return new Point(x + dx, y + dy);</code> The original isn\'t touched. Same idea as <code>s.toUpperCase()</code> making a new String in s03.'
+    ]],
+    ['Point', 'toString', [
+      'Build the String with <code>+</code>: a String plus an int gives a String.',
+      'Start with <code>"("</code>, then x, then <code>", "</code> (comma and a space), then y, then <code>")"</code>.'
+    ]],
+    ['Ticket', 'fields', [
+      'Play Part 3 again if you haven\'t: the last two cards are this class.',
+      'Each ticket needs its own <code>id</code> and <code>owner</code>. The class needs one <code>static</code> count of tickets made so far.',
+      'That\'s three fields, and exactly one of them is <code>static</code>.'
+    ]],
+    ['Ticket', 'constructor and id', [
+      'In the constructor: add 1 to the shared count, then copy its value into this ticket\'s id field. The order matters: the first ticket should get 1, not 0.',
+      'If <code>anOldTicketKeepsItsId</code> fails, <code>id()</code> is returning the shared count. Return this ticket\'s own field instead.'
+    ]],
+    ['Ticket', 'issued and resetCount', [
+      'Both are static, so they can only use static fields. Neither one has a ticket to look at.',
+      '<code>issued()</code> returns the shared count. <code>resetCount()</code> sets it back to 0. Write these two first: every test calls <code>resetCount()</code> before it starts.'
+    ]]
+  ];
+  const hintsEl = $('hints');
+  const opened = store.get('hints') || {};
+  let lastGroup = '';
+  hintSets.forEach(([group, name, list]) => {
+    if (group !== lastGroup) { const h = document.createElement('div'); h.className = 'hint-group'; h.textContent = group + '.java'; hintsEl.appendChild(h); lastGroup = group; }
+    const key = group + ':' + name;
+    const box = document.createElement('div'); box.className = 'hint-set';
+    box.innerHTML = '<header><code></code><button class="btn" type="button"></button></header><ol class="hint-list"></ol>';
+    box.querySelector('code').textContent = name;
+    const btn = box.querySelector('button'), ol = box.querySelector('ol');
+    let shown = opened[key] || 0;
+    const render = () => {
+      ol.innerHTML = '';
+      list.slice(0, shown).forEach(h => { const li = document.createElement('li'); li.innerHTML = h; ol.appendChild(li); });
+      btn.textContent = shown === 0 ? 'Show hint 1' : shown < list.length ? 'Next hint (' + (shown + 1) + '/' + list.length + ')' : 'All hints shown';
+      btn.disabled = shown >= list.length;
+    };
+    btn.addEventListener('click', () => { shown++; opened[key] = shown; store.set('hints', opened); render(); });
+    render(); hintsEl.appendChild(box);
+  });
+
+  // ----- quiz -----
+  const quiz = [
+    ['<code>Counter a = new Counter("a"); Counter b = new Counter("b"); a.increment();</code> What is <code>b.value()</code>?',
+      ['0', '1', '2', 'Compile error'], 0,
+      'Each <code>new</code> makes an object with its own count. Incrementing a does nothing to b. (If count were static, the answer would be 1, and that\'s the bug.)'],
+    ['In a <code>User</code> class, which of these should be <code>static</code>?',
+      ['The user\'s email', 'The user\'s last login time', 'The number of User objects created so far', 'The user\'s list of friends'], 2,
+      'Ask: could two users have different answers? Email, login time and friends differ per user. The total count is one number for the whole class.'],
+    ['Why won\'t <code>static int issued() { return id; }</code> compile, if <code>id</code> is a plain field?',
+      ['Static methods can\'t return ints', 'A static method runs with no ticket, so there\'s no "this ticket\'s id" to read', 'id needs to be public', 'You must write Ticket.id'], 1,
+      'Plain fields live inside objects. A static method belongs to the class and isn\'t called on any object, so it can only see static fields (or objects you pass it).'],
+    ['<code>Point p = new Point(1, 2); p.moved(5, 5); System.out.println(p);</code> What prints?',
+      ['(6, 7)', '(1, 2)', '(5, 5)', 'Point@1b6d3586'], 1,
+      '<code>moved</code> returns a new Point, and this line throws it away. p still points at (1, 2). To keep it: <code>p = p.moved(5, 5);</code>, just like <code>nums = append(nums, 3)</code> in s03.']
+  ];
+  const quizEl = $('quiz');
+  const answered = store.get('quiz') || {};
+  let right = 0;
+  quiz.forEach(([q, opts, ans, why], qi) => {
+    const box = document.createElement('div'); box.className = 'q';
+    box.innerHTML = '<p><b>' + (qi + 1) + '.</b> ' + q + '</p><div class="opts"></div><p class="explain" hidden></p>';
+    const optsEl = box.querySelector('.opts'), ex = box.querySelector('.explain');
+    const buttons = opts.map((o, oi) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'opt'; b.textContent = o;
+      if (/^[\d(]|error|@/i.test(o)) b.style.fontFamily = 'var(--mono)';
+      b.addEventListener('click', () => choose(oi)); optsEl.appendChild(b); return b;
+    });
+    function choose(oi, silent) {
+      buttons.forEach((b, k) => { b.disabled = true; if (k === ans) b.classList.add('right'); if (k === oi && oi !== ans) b.classList.add('wrong'); });
+      ex.hidden = false;
+      ex.innerHTML = (oi === ans ? '<b style="color:var(--good)">Right.</b> ' : '<b style="color:var(--bad)">Not quite.</b> ') + why;
+      if (oi === ans) right++;
+      if (!silent) { answered[qi] = oi; store.set('quiz', answered); }
+      $('score').textContent = right + ' / ' + quiz.length;
+    }
+    if (answered[qi] !== undefined && answered[qi] !== null) choose(answered[qi], true);
+    quizEl.appendChild(box);
+  });
+})();
+</script>
