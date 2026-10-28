@@ -1,0 +1,55 @@
+<meta charset="utf-8">
+<title>Lesson Name · sXX</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="kit.css">
+<style>
+/* Styles for this session's visual only. */
+.demo-cell { width: 52px; height: 52px; border-radius: 8px; border: 2px solid var(--accent); display: grid; place-items: center; font: 600 1.05rem var(--mono); }
+.demo-cell.on { background: var(--mark); color: var(--mark-ink); border-color: var(--mark); }
+</style>
+<main class="wrap">
+
+<section>
+  <div class="eyebrow">Part 1</div>
+  <h2>The idea</h2>
+  <p>One concept, explained against something from JS/React.</p>
+  <pre class="java"><code>int[] nums = {3, 1, 4};
+System.out.println(nums.length); // 3</code></pre>
+</section>
+
+<section>
+  <div class="eyebrow">Part 2</div>
+  <h2>See it move</h2>
+  <div class="viz">
+    <div class="viz-top" id="demo"></div>
+    <p class="narr" id="demo-narr">Click a box.</p>
+  </div>
+</section>
+
+</main>
+<script src="kit.js"></script>
+<script>
+Kit.lesson({
+  id: 'sXX',
+  phase: 'Phase 0 · Java Ground',
+  title: 'Lesson name',
+  lede: 'One or two sentences linking to the last session.',
+  mission: [['Click every box in the visual', 5], ['Make <code>DemoTest</code> green', 15]], // [html, minutes]; the lock-in item is added for you
+  tests: { dir: 'src/main/java/phaseN/sXX_slug/', files: [['Demo', 'What the file asks for, without the key idea.']] },
+  leetcode: [[217, 'Contains Duplicate', 'contains-duplicate', 'Optional note.']], // [number, title, slug, note]
+  hints: [['Demo', 'method', ['First nudge.', 'Second nudge.', 'Nearly there.']]],  // [file, method, hints]
+  quiz: [['Question?', ['A', 'B', 'C', 'D'], 1, 'Why B is right.']],              // [question, options, answer index, why]
+  next: 'sYY, the next topic.'
+});
+
+// The session's visual. Kit.tick(n) ticks mission item n; Kit.store is per-lesson localStorage.
+const seen = new Set();
+[3, 1, 4].forEach((v, i) => {
+  const b = Kit.el('button', 'demo-cell', String(v)); b.type = 'button';
+  b.addEventListener('click', () => { b.classList.add('on'); seen.add(i); Kit.$('demo-narr').textContent = 'nums[' + i + '] is ' + v + '.'; if (seen.size === 3) Kit.tick(1); });
+  Kit.$('demo').appendChild(b);
+});
+</script>
