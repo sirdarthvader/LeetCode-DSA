@@ -1,0 +1,888 @@
+<title>Collections Tour · s05</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one reading column (~720px) of stacked "stations"; code and visualizers break out to full column width. Shared course tokens. */
+:root {
+  --bg: #F3F5F9; --surface: #FFFFFF; --surface-2: #E8ECF2; --ink: #131C2B; --muted: #566377; --rule: #D5DBE4;
+  --accent: #2A56E0; --accent-ink: #FFFFFF; --accent-soft: #DCE5FF;
+  --mark: #FFD447; --mark-ink: #1D1700; --good: #137D55; --good-soft: #D6F2E5; --bad: #B83A33; --bad-soft: #F8DEDC;
+  --cls-soft: #FFF3C4; --cls-line: #9A7A00;
+  --code-bg: #101826; --code-ink: #DCE4EF; --code-dim: #7D8BA0; --code-hi: rgba(255, 212, 71, 0.16);
+  --c-kw: #FF9E64; --c-ty: #7DCFFF; --c-str: #A6E3A1; --c-num: #F9E2AF; --c-fn: #CBA6F7;
+  --display: 'Bricolage Grotesque', 'Avenir Next', system-ui, sans-serif;
+  --body: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0C121A; --surface: #141C27; --surface-2: #1C2633; --ink: #E6EBF2; --muted: #93A0B2; --rule: #273345;
+  --accent: #7C9CFF; --accent-ink: #0C121A; --accent-soft: #1E2A4D;
+  --mark: #F2C94C; --mark-ink: #1D1700; --good: #4CC38A; --good-soft: #143326; --bad: #F07A72; --bad-soft: #3A1B1A;
+  --cls-soft: #2E2812; --cls-line: #C9A63A;
+  --code-bg: #0A0F17; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0C121A; --surface: #141C27; --surface-2: #1C2633; --ink: #E6EBF2; --muted: #93A0B2; --rule: #273345;
+  --accent: #7C9CFF; --accent-ink: #0C121A; --accent-soft: #1E2A4D;
+  --mark: #F2C94C; --mark-ink: #1D1700; --good: #4CC38A; --good-soft: #143326; --bad: #F07A72; --bad-soft: #3A1B1A;
+  --cls-soft: #2E2812; --cls-line: #C9A63A;
+  --code-bg: #0A0F17; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--ink); font: 16px/1.6 var(--body); }
+.wrap { max-width: 760px; margin: 0 auto; padding-block: 40px 96px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 56px; }
+h1, h2, h3 { font-family: var(--display); line-height: 1.1; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(2.6rem, 7vw, 4rem); font-weight: 800; letter-spacing: -0.02em; }
+h2 { font-size: 1.75rem; font-weight: 700; letter-spacing: -0.01em; }
+h3 { font-size: 1.15rem; font-weight: 700; }
+p { margin: 0; max-width: 65ch; }
+code, kbd { font-family: var(--mono); font-size: 0.88em; background: var(--surface-2); padding: 0.1em 0.35em; border-radius: 4px; }
+section { display: grid; gap: 18px; }
+.eyebrow { font: 600 0.75rem/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.eyebrow .tag { background: var(--mark); color: var(--mark-ink); padding: 4px 8px; border-radius: 3px; }
+.lede { font-size: 1.15rem; color: var(--muted); }
+.muted { color: var(--muted); }
+button { font: inherit; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.btn { border: 1px solid var(--rule); background: var(--surface); color: var(--ink); padding: 8px 14px; border-radius: 8px; font-weight: 600; font-size: 0.92rem; }
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn.on { background: var(--accent-soft); border-color: var(--accent); }
+.btn:disabled { opacity: 0.45; cursor: default; }
+.btn.mono { font-family: var(--mono); font-size: 0.84rem; }
+
+/* mission checklist */
+.mission { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 20px; display: grid; gap: 14px; }
+.mission-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.meter { height: 8px; background: var(--surface-2); border-radius: 99px; overflow: hidden; }
+.meter > i { display: block; height: 100%; width: 0; background: var(--good); transition: width .3s; }
+.mission ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.mission label { display: flex; gap: 12px; align-items: flex-start; padding: 6px 4px; border-radius: 6px; cursor: pointer; }
+.mission label:hover { background: var(--surface-2); }
+.mission input { width: 18px; height: 18px; margin-top: 3px; accent-color: var(--good); flex: none; }
+.mission input:checked + span { color: var(--muted); text-decoration: line-through; }
+.mins { font: 0.78rem var(--mono); color: var(--muted); margin-left: auto; white-space: nowrap; padding-left: 8px; }
+
+/* code */
+pre { margin: 0; background: var(--code-bg); color: var(--code-ink); font: 0.86rem/1.65 var(--mono); padding: 16px 18px; border-radius: 10px; overflow-x: auto; }
+pre code { background: none; padding: 0; font-size: inherit; color: inherit; }
+.kw { color: var(--c-kw); } .ty { color: var(--c-ty); } .str { color: var(--c-str); } .num { color: var(--c-num); } .fn { color: var(--c-fn); } .com { color: var(--code-dim); font-style: italic; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 620px) { .two { grid-template-columns: 1fr; } }
+.two > * { min-width: 0; }
+.cap { font: 600 0.72rem/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+
+/* panels shared */
+.viz { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 20px; display: grid; gap: 18px; min-width: 0; }
+.viz-top { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.narr { font-size: 0.98rem; min-height: 4.8em; }
+.rule-box { border: 1px solid var(--accent); background: var(--accent-soft); border-radius: 10px; padding: 14px 16px; display: grid; gap: 6px; }
+.console { display: flex; gap: 10px; align-items: baseline; background: var(--code-bg); color: var(--code-ink); border-radius: 8px; padding: 10px 14px; font: 0.86rem var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+.console .d { color: var(--code-dim); flex: none; }
+.console.bad { color: #FF8A80; }
+.console.dim { color: var(--code-dim); }
+.foot { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+.stepno { font: 600 0.8rem var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.empty { font: 0.82rem var(--mono); color: var(--muted); }
+.flash { animation: flash 1.1s ease-out; }
+@keyframes flash { from { background: var(--mark); color: var(--mark-ink); } }
+
+/* rosetta */
+.ros { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr); border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; background: var(--surface); }
+.ros > div { padding: 8px 12px; font: 0.82rem/1.45 var(--mono); border-top: 1px solid var(--rule); overflow-wrap: anywhere; min-width: 0; }
+.ros > .h { font: 600 0.72rem/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); border-top: 0; padding-block: 12px; background: var(--surface-2); }
+.ros > .j { background: var(--code-bg); color: var(--code-ink); }
+.ros > .j.h { color: var(--code-dim); }
+.ros .note { color: var(--code-dim); font-style: italic; }
+
+/* anatomy */
+.anat { display: flex; flex-wrap: wrap; gap: 2px; background: var(--code-bg); border-radius: 10px; padding: 18px; font: 1.05rem var(--mono); }
+.tok { border: 0; background: none; color: var(--code-ink); font: inherit; padding: 4px 3px; border-radius: 5px; border-bottom: 2px dashed var(--code-dim); }
+.tok:hover { background: rgba(255,255,255,0.08); }
+.tok.on { background: var(--mark); color: var(--mark-ink); border-bottom-color: var(--mark); }
+.tok.seen:not(.on) { border-bottom: 2px solid var(--good); }
+.tok.ty { color: var(--c-ty); } .tok.kw { color: var(--c-kw); }
+.tok.on.ty, .tok.on.kw { color: var(--mark-ink); }
+
+/* playground */
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.tabs .btn { font-family: var(--mono); font-size: 0.84rem; }
+.tabs .btn .n { color: var(--muted); font-weight: 400; margin-left: 6px; }
+.stmts { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; }
+.stmt { text-align: left; font: 0.8rem/1.4 var(--mono); padding: 9px 12px; border-radius: 8px; border: 1px solid var(--rule); background: var(--surface-2); color: var(--ink); display: flex; gap: 8px; align-items: center; min-width: 0; overflow-wrap: anywhere; }
+.stmt:hover { border-color: var(--accent); }
+.stmt .run { margin-left: auto; color: var(--muted); font-size: 0.75rem; flex: none; }
+.stmt.done { border-color: var(--good); }
+.stmt.done .run { color: var(--good); }
+.stage { background: var(--surface-2); border-radius: 10px; padding: 18px 14px; min-height: 120px; display: grid; gap: 10px; align-content: start; overflow-x: auto; }
+.stage-head { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: baseline; }
+.vname { font: 600 0.8rem var(--mono); color: var(--muted); }
+.checks { font: 600 0.78rem var(--mono); background: var(--mark); color: var(--mark-ink); padding: 3px 8px; border-radius: 4px; }
+.row { display: flex; gap: 6px; }
+.cell-w { display: grid; gap: 4px; justify-items: center; }
+.cell { width: 52px; height: 52px; border-radius: 8px; border: 2px solid var(--accent); background: var(--surface); display: grid; place-items: center; font: 600 1.05rem var(--mono); font-variant-numeric: tabular-nums; transition: background .15s, border-color .15s; }
+.cell.look { background: var(--mark); color: var(--mark-ink); border-color: var(--mark); }
+.cell.hit { background: var(--good-soft); border-color: var(--good); color: var(--ink); }
+.cell.gone { background: var(--bad-soft); border-color: var(--bad); opacity: 0.55; }
+.idx { font: 0.72rem var(--mono); color: var(--muted); }
+.drawers { display: flex; flex-wrap: wrap; gap: 8px; }
+.drawer { display: flex; align-items: stretch; border: 2px solid var(--accent); border-radius: 8px; overflow: hidden; background: var(--surface); font: 600 0.9rem var(--mono); }
+.drawer .k { background: var(--accent-soft); padding: 8px 10px; }
+.drawer .v { padding: 8px 12px; min-width: 44px; text-align: center; font-variant-numeric: tabular-nums; }
+.drawer.hit { border-color: var(--good); box-shadow: 0 0 0 3px var(--good-soft); }
+.drawer.hit .k { background: var(--good-soft); }
+.bag { display: flex; flex-wrap: wrap; gap: 8px; border: 2px dashed var(--accent); border-radius: 999px; padding: 14px 18px; min-height: 60px; align-items: center; }
+.ball { border: 2px solid var(--accent); background: var(--surface); padding: 5px 14px; border-radius: 99px; font: 600 0.9rem var(--mono); }
+.ball.hit { border-color: var(--good); background: var(--good-soft); }
+.ball.out { border-style: dashed; border-color: var(--bad); background: var(--bad-soft); animation: bounce .7s; }
+@keyframes bounce { 0% { transform: translateY(-26px); } 45% { transform: translateY(0); } 65% { transform: translateY(-10px); } 100% { transform: translateY(0); } }
+
+/* speed round */
+.sr-card { border: 2px solid var(--rule); border-radius: 12px; padding: 22px 20px; background: var(--surface-2); font: 600 1.2rem/1.35 var(--display); min-height: 5.6em; display: grid; align-items: center; }
+.sr-card.right { border-color: var(--good); background: var(--good-soft); }
+.sr-card.wrong { border-color: var(--bad); background: var(--bad-soft); }
+.picks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+@media (max-width: 460px) { .picks { grid-template-columns: 1fr; } }
+.pick { border: 1px solid var(--rule); background: var(--surface); color: var(--ink); padding: 12px 10px; border-radius: 10px; font: 600 0.92rem var(--mono); display: grid; gap: 2px; justify-items: center; }
+.pick:hover:not(:disabled) { border-color: var(--accent); }
+.pick kbd { font-size: 0.72rem; color: var(--muted); }
+.pick.right { background: var(--good-soft); border-color: var(--good); }
+.pick.wrong { background: var(--bad-soft); border-color: var(--bad); }
+.pick:disabled { cursor: default; }
+.sr-stats { display: flex; gap: 16px; flex-wrap: wrap; font: 600 0.85rem var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.sr-stats b { color: var(--ink); }
+
+/* run */
+.term { background: var(--code-bg); color: var(--code-ink); border-radius: 10px; padding: 14px 16px; font: 0.82rem/1.6 var(--mono); overflow-x: auto; white-space: pre; }
+.term .r { color: #FF8A80; } .term .g { color: #8BE9A8; } .term .d { color: var(--code-dim); }
+.files { display: grid; gap: 10px; }
+.file { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 12px 16px; display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 12px; align-items: baseline; }
+@media (max-width: 520px) { .file { grid-template-columns: 1fr; gap: 4px; } }
+.file b { font-family: var(--mono); font-size: 0.92rem; }
+.lc { border: 1px solid var(--cls-line); background: var(--cls-soft); border-radius: 10px; padding: 14px 16px; display: grid; gap: 8px; }
+
+/* hints */
+.hint-set { border: 1px solid var(--rule); border-radius: 10px; background: var(--surface); }
+.hint-set > header { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 16px; flex-wrap: wrap; }
+.hint-set > header code { font-size: 0.9rem; }
+.hint-list { list-style: none; margin: 0; padding: 0 16px; display: grid; gap: 8px; }
+.hint-list li { border-left: 3px solid var(--mark); padding: 4px 0 4px 12px; }
+.hint-list li:last-child { margin-bottom: 14px; }
+.hint-group { font: 600 0.72rem/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-top: 8px; }
+
+/* errors */
+details { border: 1px solid var(--rule); border-radius: 10px; background: var(--surface); padding: 0 16px; }
+details + details { margin-top: -10px; }
+summary { cursor: pointer; padding: 12px 0; font: 600 0.9rem var(--mono); overflow-wrap: anywhere; }
+details > div { padding-bottom: 14px; display: grid; gap: 8px; }
+
+/* quiz */
+.q { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 18px; display: grid; gap: 12px; }
+.q .opts { display: grid; gap: 8px; }
+.opt { text-align: left; border: 1px solid var(--rule); background: var(--surface); color: var(--ink); padding: 10px 12px; border-radius: 8px; font-size: 0.95rem; }
+.opt:hover:not(:disabled) { border-color: var(--accent); }
+.opt.right { background: var(--good-soft); border-color: var(--good); }
+.opt.wrong { background: var(--bad-soft); border-color: var(--bad); }
+.opt:disabled { cursor: default; }
+.explain { font-size: 0.92rem; color: var(--muted); }
+.score { font: 600 1rem var(--mono); }
+.deck-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+.finish { border-top: 1px solid var(--rule); padding-top: 28px; display: grid; gap: 12px; }
+a { color: var(--accent); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+
+<main class="wrap">
+
+<header style="display:grid; gap:16px">
+  <div class="eyebrow"><span class="tag">s05</span> Phase 0 · Java Ground · session 5 of 127</div>
+  <h1>The collections tour</h1>
+  <p class="lede">In s04 you wrote classes and made objects with <code>new</code>. Java ships with three classes you'll use in almost every LeetCode problem from here on: <code>ArrayList</code>, <code>HashMap</code> and <code>HashSet</code>. You already know them from JS, under different names.</p>
+</header>
+
+<section aria-labelledby="m-h">
+  <div class="mission">
+    <div class="mission-head">
+      <h2 id="m-h" style="font-size:1.3rem">Today's mission</h2>
+      <span class="muted" id="m-count" style="font:0.85rem var(--mono)">0 / 7 · about 45 min</span>
+    </div>
+    <div class="meter" aria-hidden="true"><i id="m-bar"></i></div>
+    <ol id="mission">
+      <li><label><input type="checkbox" id="m1"><span>Read the first line: tap all 6 parts</span><span class="mins">3 min</span></label></li>
+      <li><label><input type="checkbox" id="m2"><span>Playground: try every line on all three collections</span><span class="mins">10 min</span></label></li>
+      <li><label><input type="checkbox" id="m3"><span>Speed round: finish one round of 10</span><span class="mins">4 min</span></label></li>
+      <li><label><input type="checkbox" id="m4"><span>Make <code>ListBasicsTest</code> green</span><span class="mins">10 min</span></label></li>
+      <li><label><input type="checkbox" id="m5"><span>Make <code>WordCountTest</code> green</span><span class="mins">8 min</span></label></li>
+      <li><label><input type="checkbox" id="m6"><span>Make <code>ContainsDuplicateTest</code> green, then submit LeetCode 217</span><span class="mins">6 min</span></label></li>
+      <li><label><input type="checkbox" id="m7"><span>Lock in: quiz, 3 lines in <code>notes/s05.md</code>, tick s05 and set 217's status in the tracker</span><span class="mins">4 min</span></label></li>
+    </ol>
+  </div>
+</section>
+
+<section aria-labelledby="r-h1">
+  <div class="eyebrow">Part 1</div>
+  <h2 id="r-h1">You already know these</h2>
+  <p>Same three tools as JS, mostly with new method names. Pick one to see the translation.</p>
+  <div class="tabs" role="group" aria-label="Collection to translate" id="ros-tabs">
+    <button class="btn on" type="button" data-ros="0">Array → ArrayList</button>
+    <button class="btn" type="button" data-ros="1">Map → HashMap</button>
+    <button class="btn" type="button" data-ros="2">Set → HashSet</button>
+  </div>
+  <div class="ros" id="ros"></div>
+  <p class="muted" id="ros-note"></p>
+</section>
+
+<section aria-labelledby="a-h">
+  <div class="eyebrow">Part 2</div>
+  <h2 id="a-h">Read the first line</h2>
+  <p>Every collection starts with a line like this one. It looks noisy, but each part has one job. Tap each part.</p>
+  <div class="viz">
+    <div class="anat" id="anat" role="group" aria-label="Parts of the line"></div>
+    <p class="narr" id="a-narr" aria-live="polite">Start with <b>List</b>, on the left.</p>
+    <div class="foot"><span></span><span class="stepno" id="a-count">0 / 6 parts</span></div>
+  </div>
+  <p>All three classes live in <code>java.util</code>, so each file that uses one needs an import at the top: <code>import java.util.ArrayList;</code>, <code>import java.util.HashMap;</code>, and so on, the way you <code>import</code> in JS.</p>
+</section>
+
+<section aria-labelledby="p-h">
+  <div class="eyebrow">Part 3</div>
+  <h2 id="p-h">Collection playground</h2>
+  <p>This is your <code>main</code>. Click a line to run it, in any order you like. Watch the yellow badge: it counts how many boxes Java had to look at to answer you.</p>
+  <div class="viz" id="pg">
+    <div class="tabs" role="group" aria-label="Collection" id="pg-tabs">
+      <button class="btn on" type="button" data-pg="list">ArrayList<span class="n" id="pgn-list"></span></button>
+      <button class="btn" type="button" data-pg="map">HashMap<span class="n" id="pgn-map"></span></button>
+      <button class="btn" type="button" data-pg="set">HashSet<span class="n" id="pgn-set"></span></button>
+    </div>
+    <pre><code id="pg-setup"></code></pre>
+    <div class="stage" id="pg-stagebox">
+      <div class="stage-head"><span class="vname" id="pg-vname"></span><span class="checks" id="pg-checks" hidden></span></div>
+      <div id="pg-stage"></div>
+    </div>
+    <div class="console" id="pg-console" hidden><span class="d">console ›</span><span id="pg-out"></span></div>
+    <p class="narr" id="pg-narr" aria-live="polite"></p>
+    <div class="stmts" id="pg-stmts" role="group" aria-label="Lines you can run"></div>
+    <div class="foot">
+      <button class="btn" id="pg-reset" type="button">Start this one over</button>
+      <span class="stepno" id="pg-count"></span>
+    </div>
+  </div>
+  <div class="rule-box">
+    <p><b>The rule.</b> An <b>ArrayList</b> is a row of numbered boxes: jump to box <code>i</code> instantly, but to find a <em>value</em> it looks at the boxes one by one. A <b>HashMap</b> files each value under a key and goes straight to it. A <b>HashSet</b> is a HashMap with keys and no values: it answers "is this in here?" in one look, and it never holds the same thing twice.</p>
+  </div>
+</section>
+
+<section aria-labelledby="sr-h">
+  <div class="eyebrow">Part 4</div>
+  <div class="deck-head">
+    <h2 id="sr-h">Speed round</h2>
+    <span class="score" id="sr-score">0 / 10</span>
+  </div>
+  <p>Ten jobs. Pick the collection for each one. Keys <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> work too, and <kbd>Enter</kbd> moves on.</p>
+  <div class="viz" id="sr" tabindex="-1">
+    <div class="sr-stats"><span>card <b id="sr-pos">1</b> / 10</span><span>streak <b id="sr-streak">0</b></span><span>best <b id="sr-best">0</b></span></div>
+    <div class="sr-card" id="sr-card" aria-live="polite"></div>
+    <div class="picks" role="group" aria-label="Pick a collection">
+      <button class="pick" type="button" data-pick="0">ArrayList<kbd>1</kbd></button>
+      <button class="pick" type="button" data-pick="1">HashMap<kbd>2</kbd></button>
+      <button class="pick" type="button" data-pick="2">HashSet<kbd>3</kbd></button>
+    </div>
+    <p class="narr" id="sr-fb" aria-live="polite">Does the job need order, a lookup by key, or just "have I got this one"?</p>
+    <div class="viz-top"><button class="btn primary" id="sr-next" type="button" hidden>Next card</button></div>
+  </div>
+</section>
+
+<section aria-labelledby="o-h">
+  <div class="eyebrow">Part 5</div>
+  <h2 id="o-h">Loops, and the order surprise</h2>
+  <p>The for-each loop from s01 works on all three. The colon reads as "in": for each <code>n</code> in <code>nums</code>.</p>
+  <pre><code id="o-code"></code></pre>
+  <div class="rule-box">
+    <p><b>Order.</b> An ArrayList keeps the order you gave it. A HashMap or HashSet keeps no order you can count on, unlike a JS Map or Set. You saw it in the playground: put <code>ada</code>, <code>lin</code>, <code>eve</code>, and it prints <code>{lin=29, eve=23, ada=36}</code>. When order matters, loop over something that has one.</p>
+    <p><b>Hands off while looping.</b> Don't add to or remove from a collection while a for-each loop is walking it. Java stops with a <code>ConcurrentModificationException</code>.</p>
+  </div>
+</section>
+
+<section aria-labelledby="t-h">
+  <div class="eyebrow">Part 6</div>
+  <h2 id="t-h">Make the tests green</h2>
+  <p>Your files are in <code>src/main/java/phase0/s05_collections/</code>. Each one already imports the type its signatures need (<code>List</code> or <code>Map</code>). The classes you make with <code>new</code> you'll import yourself.</p>
+  <div class="files">
+    <div class="file"><b>ListBasics</b><span>Build a list, build a reversed copy, and remove values from a list in place. That last one has two traps, and the playground showed you one of them.</span></div>
+    <div class="file"><b>WordCount</b><span>Count words with a map, then find the most common one. Ties go to the word that appears first, and Part 5 matters here.</span></div>
+    <div class="file"><b>ContainsDuplicate</b><span>LeetCode 217. One of the tests uses 200,000 numbers and gives you 2 seconds.</span></div>
+  </div>
+  <pre><code>mvn -q test -Dtest=ListBasicsTest
+mvn -q test -Dtest=WordCountTest
+mvn -q test -Dtest=ContainsDuplicateTest</code></pre>
+  <div class="two">
+    <div><div class="cap">A trap firing</div><div class="term"><span class="r">[ERROR] removeAllRemovesNeighbours:52</span>
+  expected: &lt;[1]&gt; but was: &lt;[5, 1, 5]&gt;</div></div>
+    <div><div class="cap">After: green</div><div class="term"><span class="d">$ mvn -q test -Dtest=WordCountTest</span>
+<span class="d">$</span> <span class="g">▍</span>
+<span class="d">(no output = all passed)</span></div></div>
+  </div>
+  <div class="lc">
+    <h3>Then on LeetCode</h3>
+    <p>Open <a href="https://leetcode.com/problems/contains-duplicate/" target="_blank" rel="noopener">217 · Contains Duplicate ↗</a> and switch the language to Java. LeetCode's method sits in a <code>class Solution</code> and isn't <code>static</code>, so paste your method's body into theirs. Any imports go at the very top of their editor. Submit, then set 217's status in the tracker honestly: on your own, with a hint, or after reading a solution. Hints and solutions bring it back tomorrow; that's the system working, not a mark against you.</p>
+  </div>
+</section>
+
+<section aria-labelledby="h-h">
+  <div class="eyebrow">Stuck?</div>
+  <h2 id="h-h">Hints, one at a time</h2>
+  <p>Give yourself 5 honest minutes on a method before opening a hint. Then take only one, and go try again.</p>
+  <div id="hints" style="display:grid; gap:12px"></div>
+</section>
+
+<section aria-labelledby="e-h">
+  <div class="eyebrow">Decoder</div>
+  <h2 id="e-h">Errors you'll probably meet today</h2>
+  <div>
+    <details><summary>error: unexpected type &nbsp; required: reference &nbsp; found: int</summary><div><p>You wrote <code>List&lt;int&gt;</code>. Collections hold objects only. Write <code>List&lt;Integer&gt;</code>; Java wraps each <code>int</code> into an <code>Integer</code> for you.</p></div></details>
+  </div>
+  <div>
+    <details><summary>error: cannot find symbol &nbsp; symbol: class ArrayList</summary><div><p>Missing import. Add <code>import java.util.ArrayList;</code> under the <code>package</code> line. Same for <code>HashMap</code> and <code>HashSet</code>.</p></div></details>
+  </div>
+  <div>
+    <details><summary>error: cannot find symbol &nbsp; symbol: variable length &nbsp; location: variable words of type List&lt;String&gt;</summary><div><p>Lists use <code>words.size()</code>. Arrays use <code>nums.length</code>, with no brackets, and Strings use <code>s.length()</code>, with brackets. Three spellings for one idea: the compiler always tells you which one you mixed up.</p></div></details>
+  </div>
+  <div>
+    <details><summary>java.lang.IndexOutOfBoundsException: Index 3 out of bounds for length 3</summary><div><p>You asked for a box that isn't there. In <code>removeAll</code> it's usually <code>list.remove(value)</code>: with an <code>int</code>, <code>remove</code> means "remove the box at this <b>index</b>", not "remove this value". In JS a missing index gives <code>undefined</code>. Java stops the program instead.</p></div></details>
+  </div>
+  <div>
+    <details><summary>removeAllRemovesTheValueNotTheIndex expected: &lt;[10, 20, 30]&gt; but was: &lt;[10]&gt;</summary><div><p>The same trap without a crash: <code>remove(1)</code> removed the box at index 1, three times. To remove by value, either loop over indices and call <code>remove(i)</code> where the value matches, or make the value an object: <code>list.remove(Integer.valueOf(value))</code>.</p></div></details>
+  </div>
+  <div>
+    <details><summary>removeAllRemovesNeighbours expected: &lt;[1]&gt; but was: &lt;[5, 1, 5]&gt;</summary><div><p>You loop forwards and remove as you go. When you remove box <code>i</code>, everything after it shifts one place left, so the next value moves into box <code>i</code>. Then <code>i++</code> skips right past it. Loop backwards from the end, or only move on when you didn't remove anything.</p></div></details>
+  </div>
+  <div>
+    <details><summary>java.util.ConcurrentModificationException</summary><div><p>You removed from the list inside a for-each loop over that same list. Java won't let a collection change while a for-each is walking it. Use an index loop instead.</p></div></details>
+  </div>
+  <div>
+    <details><summary>NullPointerException: Cannot invoke "java.lang.Integer.intValue()" because the return value of "java.util.Map.get(Object)" is null</summary><div><p>Probably <code>counts.get(w) + 1</code> on a word you haven't seen yet. <code>get</code> returned <code>null</code>, and <code>null + 1</code> has no answer, so Java crashes. Look up <code>getOrDefault</code> in the Part 1 table.</p></div></details>
+  </div>
+  <div>
+    <details><summary>mostCommonTieGoesToTheWordThatAppearsFirst expected: &lt;b&gt; but was: &lt;a&gt;</summary><div><p>Or <code>&lt;amy&gt; but was: &lt;zoe&gt;</code>. You're looping over the map to find the winner, and the map's order isn't the order the words came in (Part 5). Loop over the <code>words</code> array instead and look each word's count up in the map.</p></div></details>
+  </div>
+  <div>
+    <details><summary>bigInputIsFast: execution timed out after 2000 ms</summary><div><p>Your answer is right but too slow for 200,000 numbers. LeetCode calls this <b>Time Limit Exceeded</b>. Somewhere you're looking at every number for every number. Go back to the yellow badge in the playground and compare the three collections.</p></div></details>
+  </div>
+</section>
+
+<section aria-labelledby="q-h">
+  <div class="eyebrow">Lock in</div>
+  <div class="deck-head">
+    <h2 id="q-h">Four quick questions</h2>
+    <span class="score" id="score">0 / 4</span>
+  </div>
+  <div id="quiz" style="display:grid; gap:12px"></div>
+</section>
+
+<section class="finish">
+  <h3>Done with all 7?</h3>
+  <p>Write three lines in <code>notes/s05.md</code>: the idea, when to use it, what tripped you up. Then tick s05 in your <a href="https://claude.ai/artifact/2GrTM6DxjxduvdujM6XEed" target="_blank" rel="noopener">Roadmap Tracker ↗</a> and set LeetCode 217's status there. If a "but why?" question is nagging you (how does a HashMap jump straight to a key? why <code>List</code> on the left and <code>ArrayList</code> on the right? what's that <code>-&gt;</code> arrow?), put it in <code>PARKING_LOT.md</code>.</p>
+  <p class="muted">Next up: s06, generics and interfaces. You've been writing <code>List&lt;Integer&gt;</code> all session; next time you find out what the angle brackets and the <code>List</code> on the left really mean, and how to sort things your own way.</p>
+</section>
+
+</main>
+
+<script>
+(function () {
+  const store = {
+    get(k) { try { return JSON.parse(localStorage.getItem('s05:' + k)); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem('s05:' + k, JSON.stringify(v)); } catch (e) {} }
+  };
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ----- mission checklist (per-viewer convenience) -----
+  const boxes = [...document.querySelectorAll('#mission input')];
+  const saved = store.get('mission') || {};
+  boxes.forEach(b => { b.checked = !!saved[b.id]; b.addEventListener('change', updateMission); });
+  function updateMission() {
+    const st = {}; let n = 0;
+    boxes.forEach(b => { st[b.id] = b.checked; if (b.checked) n++; });
+    store.set('mission', st);
+    $('m-count').textContent = n === boxes.length ? boxes.length + ' / ' + boxes.length + ' · session complete' : n + ' / ' + boxes.length + ' · about 45 min';
+    $('m-bar').style.width = (n / boxes.length * 100) + '%';
+  }
+  updateMission();
+  function tick(id) { const b = $(id); if (b && !b.checked) { b.checked = true; updateMission(); } }
+
+  // ----- syntax colouring: one pass, so keywords inside spans we add are never touched -----
+  const TOK = /(\/\/.*$)|("[^"\n]*")|\b(new|return|for|if|import|static|public|void|true|false|null|const)\b|\b(int|String|Integer|boolean|List|ArrayList|Map|HashMap|Set|HashSet|Entry)\b|\b(System\.out\.println)\b|\b(\d+)\b/gm;
+  const KINDS = ['com', 'str', 'kw', 'ty', 'fn', 'num'];
+  function H(code) {
+    let out = '', last = 0;
+    code.replace(TOK, (m, ...g) => {
+      const off = g[KINDS.length];
+      out += esc(code.slice(last, off)) + '<span class="' + KINDS[g.findIndex((x, i) => i < KINDS.length && x !== undefined)] + '">' + esc(m) + '</span>';
+      last = off + m.length;
+      return m;
+    });
+    return out + esc(code.slice(last));
+  }
+
+  // ----- part 1: rosetta -----
+  const ROS = [
+    [[['const nums = []', 'List<Integer> nums = new ArrayList<>();'],
+      ['nums.push(7)', 'nums.add(7);'],
+      ['nums[0]', 'nums.get(0)'],
+      ['nums[0] = 5', 'nums.set(0, 5);'],
+      ['nums.length', 'nums.size()'],
+      ['nums.includes(7)', 'nums.contains(7)'],
+      ['nums.splice(2, 1)', 'nums.remove(2);   // removes index 2'],
+      ['for (const n of nums)', 'for (int n : nums)']],
+     'An ArrayList is an array that grows. A plain int[] is fixed at the size you made it, so when you don\'t know how many items are coming, use a list.'],
+    [[['const ages = new Map()', 'Map<String, Integer> ages = new HashMap<>();'],
+      ['ages.set("ada", 36)', 'ages.put("ada", 36);'],
+      ['ages.get("ada")', 'ages.get("ada")'],
+      ['ages.get("bob")   // undefined', 'ages.get("bob")   // null'],
+      ['ages.get("bob") ?? 0', 'ages.getOrDefault("bob", 0)'],
+      ['ages.has("ada")', 'ages.containsKey("ada")'],
+      ['ages.delete("ada")', 'ages.remove("ada");'],
+      ['ages.size', 'ages.size()'],
+      ['for (const [k, v] of ages)', 'for (String k : ages.keySet())']],
+     'Two types in the angle brackets: the key type, then the value type. Map<String, Integer> means "a String points at an Integer".'],
+    [[['const seen = new Set()', 'Set<String> seen = new HashSet<>();'],
+      ['seen.add("red")', 'seen.add("red");   // true if it was new'],
+      ['seen.has("red")', 'seen.contains("red")'],
+      ['seen.delete("red")', 'seen.remove("red");'],
+      ['seen.size', 'seen.size()'],
+      ['for (const c of seen)', 'for (String c : seen)']],
+     'A set has no positions, so there\'s no get(0). You can add, remove, loop, and ask one question: is this in here?']
+  ];
+  function drawRos(k) {
+    document.querySelectorAll('[data-ros]').forEach(b => b.classList.toggle('on', +b.dataset.ros === k));
+    $('ros').innerHTML = '<div class="h">JavaScript</div><div class="h j">Java</div>' +
+      ROS[k][0].map(([js, java]) => '<div>' + esc(js) + '</div><div class="j">' + H(java) + '</div>').join('');
+    $('ros-note').textContent = ROS[k][1];
+  }
+  document.querySelectorAll('[data-ros]').forEach(b => b.addEventListener('click', () => drawRos(+b.dataset.ros)));
+  drawRos(0);
+
+  // ----- part 2: anatomy -----
+  const PARTS = [
+    ['List', 'ty', '<b>List</b> is the type of the variable: what you can do with it (add, get, size…). It\'s an <em>interface</em>, a promise of methods with no code behind it. s06 covers those. For now the habit is: the general type on the left, the real class on the right.'],
+    ['<Integer>', 'ty', '<b>&lt;Integer&gt;</b> says what goes inside. Collections hold objects only, never plain <code>int</code>s, so you write <code>Integer</code>, the object version of <code>int</code>. Java converts back and forth for you: <code>nums.add(7)</code> wraps the 7 up, and <code>int n = nums.get(0)</code> unwraps it. The other pairs: <code>boolean</code>/<code>Boolean</code>, <code>char</code>/<code>Character</code>, <code>long</code>/<code>Long</code>, <code>double</code>/<code>Double</code>.'],
+    ['nums', '', '<b>nums</b> is the variable. Like every object variable since s03, it holds an arrow to the list, and the list itself lives on the heap.'],
+    ['=', '', '<b>=</b> points the arrow. Nothing new here.'],
+    ['new ArrayList', 'kw', '<b>new ArrayList</b> makes the actual object, exactly like <code>new Counter("likes")</code> in s04. ArrayList is a class someone wrote, with an array inside that it swaps for a bigger one when it fills up (s12 shows how).'],
+    ['<>();', '', '<b>&lt;&gt;</b> is called the diamond. Java copies <code>&lt;Integer&gt;</code> over from the left, so you don\'t have to write it twice. The <code>()</code> calls the constructor with no arguments: a new, empty list.']
+  ];
+  const seenParts = new Set(store.get('anat') || []);
+  const anat = $('anat');
+  PARTS.forEach(([t, kind], i) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'tok' + (kind ? ' ' + kind : ''); b.textContent = t;
+    b.addEventListener('click', () => showPart(i));
+    anat.appendChild(b);
+  });
+  function showPart(i) {
+    seenParts.add(i); store.set('anat', [...seenParts]);
+    [...anat.querySelectorAll('.tok')].forEach((b, k) => { b.classList.toggle('on', k === i); b.classList.toggle('seen', seenParts.has(k)); });
+    $('a-narr').innerHTML = PARTS[i][2];
+    $('a-count').textContent = seenParts.size + ' / ' + PARTS.length + ' parts';
+    if (seenParts.size === PARTS.length) tick('m1');
+  }
+  [...anat.querySelectorAll('.tok')].forEach((b, k) => b.classList.toggle('seen', seenParts.has(k)));
+  $('a-count').textContent = seenParts.size + ' / ' + PARTS.length + ' parts';
+
+  // ----- part 3: playground -----
+  // Java's HashMap iteration order for small maps: bucket = (h ^ h >>> 16) & 15, ties by insertion.
+  const jhash = (s) => { let h = 0; for (const c of s) h = (Math.imul(31, h) + c.charCodeAt(0)) | 0; return h; };
+  const bucket = (s) => { const h = jhash(s); return (h ^ (h >>> 16)) & 15; };
+  const hashOrder = (keys) => keys.map((k, i) => [bucket(k), i, k]).sort((a, b) => a[0] - b[0] || a[1] - b[1]).map(x => x[2]);
+  const IOOBE = (i, n) => 'Exception in thread "main" java.lang.IndexOutOfBoundsException: Index ' + i + ' out of bounds for length ' + n;
+  const plural = (n, w) => n + ' ' + w + (n === 1 ? '' : 's');
+  const nBoxes = (n) => n + (n === 1 ? ' box' : ' boxes');
+
+  const PG = {
+    list: {
+      vname: 'nums · ArrayList<Integer>',
+      setup: 'List<Integer> nums = new ArrayList<>();\nnums.add(7);\nnums.add(3);\nnums.add(9);   // these four lines already ran',
+      fresh: () => ({ a: [7, 3, 9] }),
+      intro: 'Three boxes, numbered from 0, just like an array. Run any line below.',
+      stmts: [
+        ['nums.add(4);', (s) => { s.a.push(4); return { flash: s.a.length - 1, say: `add puts 4 in a new box at the end, index ${s.a.length - 1}. This is JS push. The list grew by itself; a plain int[] can't do that.` }; }],
+        ['nums.add(0, 8);', (s) => { s.a.unshift(8); return { flash: 0, say: 'Two arguments: an index, then a value. 8 goes in at index 0 and every other box shifts one place right, so all their indexes go up by one. On a long list that shifting is real work.' }; }],
+        ['System.out.println(nums.get(1));', (s) => {
+          if (s.a.length < 2) return { err: IOOBE(1, s.a.length), say: 'There is no box 1 right now. JS would give you undefined; Java stops the program.' };
+          return { out: String(s.a[1]), scan: [1], hit: 1, checks: 'Looked at 1 box', say: `get(1) is JS's nums[1]. It jumps straight to box 1 without looking at anything else. Knowing the index makes it instant.` };
+        }],
+        ['nums.set(1, 5);', (s) => {
+          if (s.a.length < 2) return { err: IOOBE(1, s.a.length), say: 'There is no box 1 to overwrite.' };
+          const old = s.a[1]; s.a[1] = 5; return { ret: String(old), flash: 1, say: `set(1, 5) is nums[1] = 5. It overwrites box 1 and hands back the value that was there, ${old}. Most of the time you ignore that.` };
+        }],
+        ['System.out.println(nums.contains(4));', (s) => {
+          const at = s.a.indexOf(4), scan = (at < 0 ? s.a : s.a.slice(0, at + 1)).map((v, i) => i);
+          return { out: String(at >= 0), scan, hit: at >= 0 ? at : null, checks: 'Looked at ' + scan.length + ' of ' + nBoxes(s.a.length),
+            say: at >= 0 ? `contains has no idea where 4 is, so it starts at box 0 and looks at each box in turn. It found 4 after ${plural(scan.length, 'look')}.` : `No 4 here, and to be sure of that, contains had to look at every single box: ${scan.length} of them. A list of a million numbers means a million looks.` };
+        }],
+        ['nums.remove(3);', (s) => {
+          if (s.a.length <= 3) return { err: IOOBE(3, s.a.length), say: `You probably meant "remove the 3". But with an int, remove(3) means "remove the box at index 3", and this list has only ${nBoxes(s.a.length)}. It's today's biggest trap.` };
+          const pre = s.a.slice(), gone = s.a.splice(3, 1)[0];
+          return { pre, scan: [], gone: 3, ret: String(gone), say: gone === 3 ? 'That removed the box at index 3, which by luck held a 3. remove with an int always means an index. Try it again on a different list and watch.' : `Surprise: that removed the box at index 3, which held ${gone}, not the number 3. With an int, remove means "at this index". The next line shows how to remove a value.` };
+        }],
+        ['nums.remove(Integer.valueOf(3));', (s) => {
+          const at = s.a.indexOf(3), scan = (at < 0 ? s.a : s.a.slice(0, at + 1)).map((v, i) => i), pre = s.a.slice();
+          if (at < 0) return { ret: 'false', scan, hit: null, checks: 'Looked at ' + scan.length + ' of ' + scan.length, say: 'Integer.valueOf(3) turns 3 into an object, so Java uses the other remove, the one that searches for a value. It looked through every box, found no 3, and returned false.' };
+          s.a.splice(at, 1);
+          return { pre, scan, gone: at, ret: 'true', checks: 'Looked at ' + scan.length + ' of ' + pre.length, say: `Integer.valueOf(3) turns 3 into an object, so Java picks the other remove, the one that searches for a value. It looked at ${nBoxes(scan.length)}, removed the first 3, and everything after it shifted left.` };
+        }],
+        ['System.out.println(nums.get(10));', (s) => ({ err: IOOBE(10, s.a.length), say: 'In JS, nums[10] is undefined and the program carries on with a bug. Java stops right there and tells you the index and the length. Annoying now, but the bug can\'t hide.' })],
+        ['System.out.println(nums.size());', (s) => ({ out: String(s.a.length), say: 'size(), with brackets, because it\'s a method. Arrays use .length with no brackets, Strings use .length() with them. Three spellings for one idea.' })]
+      ]
+    },
+    map: {
+      vname: 'ages · HashMap<String, Integer>',
+      setup: 'Map<String, Integer> ages = new HashMap<>();',
+      fresh: () => ({ keys: [], vals: {} }),
+      intro: 'An empty map. Each entry will be a key (a name) that points at a value (an age). Run any line below.',
+      stmts: [
+        ['ages.put("ada", 36);', (s) => put(s, 'ada', 36)],
+        ['ages.put("lin", 29);', (s) => put(s, 'lin', 29)],
+        ['ages.put("eve", 23);', (s) => put(s, 'eve', 23)],
+        ['ages.put("ada", 37);', (s) => put(s, 'ada', 37)],
+        ['System.out.println(ages.get("ada"));', (s) => lookup(s, 'ada', 'get')],
+        ['System.out.println(ages.get("bob"));', (s) => lookup(s, 'bob', 'get')],
+        ['System.out.println(ages.getOrDefault("bob", 0));', (s) => lookup(s, 'bob', 'getOrDefault')],
+        ['System.out.println(ages.containsKey("lin"));', (s) => lookup(s, 'lin', 'containsKey')],
+        ['ages.remove("lin");', (s) => {
+          if (!(s.keys.includes('lin'))) return { ret: 'null', say: 'There\'s no "lin" to remove, so nothing changes and remove returns null.' };
+          const old = s.vals.lin; s.keys = s.keys.filter(k => k !== 'lin'); delete s.vals.lin;
+          return { ret: String(old), say: `"lin" and its value are gone, and remove handed back the old value, ${old}.` };
+        }],
+        ['System.out.println(ages);', (s) => {
+          const order = hashOrder(s.keys);
+          const out = '{' + order.map(k => k + '=' + s.vals[k]).join(', ') + '}';
+          const ins = s.keys.join(', ');
+          return { out, say: s.keys.length < 2 ? 'A map prints as {key=value, ...}. Put two or three names in, then print it again and look at the order.' : (order.join(', ') === ins ? `Printed in the order you put them in, ${ins}? That's luck. A HashMap files each key by a number worked out from the key, and prints in that filing order. Put in all three names and print again.` : `Look at the order: you put them in as ${ins}, but it prints ${order.join(', ')}. A HashMap files each key by a number worked out from the key itself (s16 shows how) and prints in that filing order. A JS Map remembers insertion order; a HashMap doesn't promise any order at all.`) };
+        }]
+      ]
+    },
+    set: {
+      vname: 'seen · HashSet<String>',
+      setup: 'Set<String> seen = new HashSet<>();',
+      fresh: () => ({ keys: [] }),
+      intro: 'An empty set: a bag of things with no positions and no repeats. Run any line below.',
+      stmts: [
+        ['seen.add("red");', (s) => add(s, 'red')],
+        ['seen.add("blue");', (s) => add(s, 'blue')],
+        ['seen.add("green");', (s) => add(s, 'green')],
+        ['System.out.println(seen.add("red"));', (s) => { const r = add(s, 'red'); r.out = r.ret; delete r.ret; return r; }],
+        ['System.out.println(seen.contains("blue"));', (s) => {
+          const has = s.keys.includes('blue');
+          return { out: String(has), hit: has ? 'blue' : null, checks: 'Looked at 1 spot', say: has ? 'One look. contains works out where "blue" would be filed and checks only that spot. That\'s the difference from a list, which looks box by box.' : 'One look, even to say no. It works out where "blue" would be filed, finds nothing there, and stops. No scanning.' };
+        }],
+        ['seen.remove("blue");', (s) => {
+          const has = s.keys.includes('blue'); s.keys = s.keys.filter(k => k !== 'blue');
+          return { ret: String(has), say: has ? '"blue" is out, and remove returned true to say it was there.' : 'There was no "blue", so remove returned false and nothing changed.' };
+        }],
+        ['System.out.println(seen.size());', (s) => ({ out: String(s.keys.length), say: `${s.keys.length}. However many times you add "red", it only counts once.` })],
+        ['System.out.println(seen);', (s) => {
+          const order = hashOrder(s.keys);
+          return { out: '[' + order.join(', ') + ']', say: s.keys.length < 2 ? 'A set prints as [a, b, ...]. Add a few colours, then print again and check the order.' : 'Same as the map: printed in filing order, not the order you added them. A HashSet is a HashMap underneath, with keys and no values.' };
+        }],
+        ['seen.get(0);', () => ({ err: 'error: cannot find symbol\n  symbol:   method get(int)\n  location: variable seen of type Set<String>', say: 'A set has no positions, so there\'s no get(0). This is a compile error: nothing ran. If you need "the item at position 0", you need a list.' })]
+      ]
+    }
+  };
+  function put(s, k, v) {
+    const had = s.keys.includes(k), old = s.vals[k];
+    if (!had) s.keys.push(k);
+    s.vals[k] = v;
+    if (had) return { ret: String(old), flash: k, say: `A key can be in a map only once. Putting "${k}" again replaces the value and hands back the old one, ${old}. The size stays the same.` };
+    return { ret: 'null', flash: k, say: s.keys.length === 1 ? `put files ${v} under the key "${k}". It returns the key's old value, which is null because there wasn't one.` : `"${k}" now points at ${v}. Watch where it lands: a HashMap decides the spot from the key itself, not from when you added it.` };
+  }
+  function lookup(s, k, how) {
+    const has = s.keys.includes(k);
+    const out = how === 'containsKey' ? String(has) : has ? String(s.vals[k]) : how === 'getOrDefault' ? '0' : 'null';
+    let say;
+    if (how === 'get' && !has && k === 'bob') say = 'No "bob", so get returns null, Java\'s undefined. Careful: maths with it, like ages.get("bob") + 1, crashes the program with a NullPointerException. You\'ll meet that in WordCount.';
+    else if (how === 'getOrDefault') say = has ? `"${k}" is there, so you get the value.` : 'getOrDefault gives you the fallback, 0, when the key is missing. It\'s JS\'s ?? 0, and it\'s the safe way to count things.';
+    else if (!has) say = `No "${k}" in the map yet, so ${how === 'get' ? 'get returns null' : 'containsKey says false'}. Add it first, then try again.`;
+    else say = 'One look. A HashMap doesn\'t search: it works out where "' + k + '" must be filed and goes straight there. That\'s the whole point of a HashMap; s16 shows how it works.';
+    return { out, hit: has ? k : null, checks: 'Looked at 1 spot', say };
+  }
+  function add(s, k) {
+    if (s.keys.includes(k)) return { ret: 'false', bounce: k, say: `"${k}" is already in the set, so it bounces off. add returns false to tell you. A set never holds the same thing twice, and that false is often exactly the answer you were looking for.` };
+    s.keys.push(k);
+    return { ret: 'true', hit: k, say: `"${k}" is in. add returns true when the item was new.` };
+  }
+
+  let tab = 'list', animToken = 0;
+  const pgState = { list: PG.list.fresh(), map: PG.map.fresh(), set: PG.set.fresh() };
+  const savedTried = store.get('pg') || {};
+  const pgTried = { list: new Set(savedTried.list || []), map: new Set(savedTried.map || []), set: new Set(savedTried.set || []) };
+  const lastSay = { list: '', map: '', set: '' };
+
+  function stageList(arr, fx) {
+    return '<div class="row">' + (arr.length ? arr.map((v, i) => '<div class="cell-w"><div class="cell' + (fx.flash === i ? ' flash' : '') + '" data-i="' + i + '">' + v + '</div><div class="idx">' + i + '</div></div>').join('') : '<div class="empty">empty list []</div>') + '</div>';
+  }
+  function stageMap(s, fx) {
+    const order = hashOrder(s.keys);
+    return order.length ? '<div class="drawers">' + order.map(k => '<div class="drawer' + (fx.hit === k ? ' hit' : '') + (fx.flash === k ? ' flash' : '') + '"><span class="k">"' + k + '"</span><span class="v">' + s.vals[k] + '</span></div>').join('') + '</div>' : '<div class="empty">empty map {}</div>';
+  }
+  function stageSet(s, fx) {
+    const order = hashOrder(s.keys);
+    let h = order.map(k => '<span class="ball' + (fx.hit === k ? ' hit' : '') + '">"' + k + '"</span>').join('');
+    if (fx.bounce) h += '<span class="ball out">"' + fx.bounce + '"</span>';
+    return '<div class="bag">' + (h || '<span class="empty">empty set []</span>') + '</div>';
+  }
+  function drawPG(fx) {
+    fx = fx || {};
+    const P = PG[tab], s = pgState[tab], my = ++animToken;
+    document.querySelectorAll('[data-pg]').forEach(b => b.classList.toggle('on', b.dataset.pg === tab));
+    ['list', 'map', 'set'].forEach(k => { $('pgn-' + k).textContent = pgTried[k].size + '/' + PG[k].stmts.length; });
+    $('pg-setup').innerHTML = H(P.setup);
+    $('pg-vname').textContent = P.vname;
+    $('pg-checks').hidden = true;
+    const stage = $('pg-stage');
+    const finish = () => {
+      if (my !== animToken) return;
+      if (fx.checks) { $('pg-checks').hidden = false; $('pg-checks').textContent = fx.checks; }
+    };
+    if (tab === 'list') {
+      const showPre = fx.pre && !reduce;
+      stage.innerHTML = stageList(showPre ? fx.pre : s.a, showPre ? {} : fx);
+      const cell = (i) => stage.querySelector('[data-i="' + i + '"]');
+      const scan = fx.scan || [];
+      const step = reduce ? 0 : 260;
+      if (reduce || !scan.length && !fx.pre) {
+        if (!fx.pre) { scan.forEach(i => cell(i) && cell(i).classList.add('look')); if (fx.hit != null && cell(fx.hit)) { cell(fx.hit).classList.remove('look'); cell(fx.hit).classList.add('hit'); } }
+        finish();
+      } else {
+        scan.forEach((i, k) => setTimeout(() => { if (my === animToken && cell(i)) cell(i).classList.add('look'); }, k * step));
+        setTimeout(() => {
+          if (my !== animToken) return;
+          if (fx.hit != null && cell(fx.hit)) { cell(fx.hit).classList.remove('look'); cell(fx.hit).classList.add('hit'); }
+          if (fx.gone != null && cell(fx.gone)) { cell(fx.gone).classList.remove('look'); cell(fx.gone).classList.add('gone'); }
+          finish();
+          if (fx.pre) setTimeout(() => { if (my === animToken) stage.innerHTML = stageList(s.a, {}); }, 650);
+        }, scan.length * step);
+      }
+    } else {
+      stage.innerHTML = tab === 'map' ? stageMap(s, fx) : stageSet(s, fx);
+      finish();
+    }
+    const text = fx.err || fx.out || (fx.ret !== undefined ? 'returns ' + fx.ret : '');
+    $('pg-console').hidden = !text;
+    $('pg-console').className = 'console' + (fx.err ? ' bad' : fx.out === undefined && fx.ret !== undefined ? ' dim' : '');
+    $('pg-out').textContent = text;
+    $('pg-narr').textContent = fx.say || lastSay[tab] || P.intro;
+    const stmts = $('pg-stmts');
+    stmts.innerHTML = '';
+    P.stmts.forEach(([t], i) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'stmt' + (pgTried[tab].has(i) ? ' done' : '');
+      b.innerHTML = '<span>' + esc(t) + '</span><span class="run" aria-hidden="true">▶ run</span>';
+      b.addEventListener('click', () => runPG(i));
+      stmts.appendChild(b);
+    });
+    $('pg-count').textContent = pgTried[tab].size + ' / ' + P.stmts.length + ' lines tried';
+  }
+  function runPG(i) {
+    const fx = PG[tab].stmts[i][1](pgState[tab]);
+    pgTried[tab].add(i);
+    store.set('pg', { list: [...pgTried.list], map: [...pgTried.map], set: [...pgTried.set] });
+    lastSay[tab] = fx.say;
+    drawPG(fx);
+    if (['list', 'map', 'set'].every(k => pgTried[k].size === PG[k].stmts.length)) tick('m2');
+  }
+  document.querySelectorAll('[data-pg]').forEach(b => b.addEventListener('click', () => { tab = b.dataset.pg; drawPG(); }));
+  $('pg-reset').addEventListener('click', () => { pgState[tab] = PG[tab].fresh(); lastSay[tab] = ''; drawPG(); });
+  drawPG();
+
+  // ----- part 4: speed round -----
+  const NAMES = ['ArrayList', 'HashMap', 'HashSet'];
+  const SCEN = [
+    ['A playlist: songs in order, and "play song number 3"', 0, 'Order plus positions: that\'s a list. get(2) is song number 3.'],
+    ['Look up a player\'s score from their username', 1, 'Username is the key, score is the value. One look to find it.'],
+    ['Check whether a username is already taken', 2, 'You only need yes or no, nothing attached to the name, so a set.'],
+    ['Count how many times each emoji was used', 1, 'Emoji is the key, its count is the value. You\'ll do exactly this in WordCount.'],
+    ['Search results to show, best match first', 0, 'The order is the point, so a list.'],
+    ['Which numbers already appear in this sudoku row', 2, 'Only "is 7 already here?", so a set. LeetCode 36 is built on this; you\'ll meet it in s16.'],
+    ['The steps of a recipe', 0, 'Step 1, step 2, step 3: order and positions, so a list.'],
+    ['Each country\'s capital city', 1, 'Country is the key, capital is the value.'],
+    ['Tags on a blog post: no repeats, order doesn\'t matter', 2, '"No repeats" and "order doesn\'t matter" together say set.'],
+    ['The last 5 numbers someone typed, oldest first', 0, 'Order matters and repeats are allowed (they could type 4 twice), so a list.'],
+    ['A phone number, and whose number it is', 1, 'Number is the key, the name is the value.'],
+    ['Which pages of a book you\'ve already read', 2, 'Only "have I read page 40?", so a set.']
+  ];
+  let deck, pos, srScore, streak, best = store.get('srbest') || 0, answered;
+  function newRound() {
+    deck = SCEN.map((c, i) => i).sort(() => Math.random() - 0.5).slice(0, 10);
+    pos = 0; srScore = 0; streak = 0; answered = false;
+    drawCard();
+    $('sr-fb').textContent = 'Does the job need order, a lookup by key, or just "have I got this one"?';
+  }
+  function drawCard() {
+    const card = $('sr-card');
+    card.className = 'sr-card';
+    card.textContent = SCEN[deck[pos]][0];
+    document.querySelectorAll('[data-pick]').forEach(b => { b.disabled = false; b.className = 'pick'; });
+    $('sr-next').hidden = true;
+    $('sr-pos').textContent = pos + 1; $('sr-streak').textContent = streak; $('sr-best').textContent = best;
+    $('sr-score').textContent = srScore + ' / 10';
+  }
+  function pick(k) {
+    if (answered || pos >= 10) return;
+    answered = true;
+    const [, right, why] = SCEN[deck[pos]];
+    const ok = k === right;
+    if (ok) { srScore++; streak++; if (streak > best) { best = streak; store.set('srbest', best); } } else streak = 0;
+    document.querySelectorAll('[data-pick]').forEach(b => { const v = +b.dataset.pick; b.disabled = true; if (v === right) b.classList.add('right'); if (v === k && !ok) b.classList.add('wrong'); });
+    $('sr-card').classList.add(ok ? 'right' : 'wrong');
+    $('sr-fb').innerHTML = (ok ? '<b style="color:var(--good)">Right.</b> ' : '<b style="color:var(--bad)">' + NAMES[right] + '.</b> ') + esc(why);
+    $('sr-streak').textContent = streak; $('sr-best').textContent = best;
+    $('sr-score').textContent = srScore + ' / 10';
+    const btn = $('sr-next');
+    btn.hidden = false;
+    btn.textContent = pos === 9 ? 'See my score' : 'Next card';
+    btn.focus({ preventScroll: true });
+  }
+  function next() {
+    if (!answered) return;
+    if (pos === 9) {
+      pos = 10;
+      tick('m3');
+      $('sr-card').className = 'sr-card';
+      $('sr-card').textContent = srScore === 10 ? '10 / 10. Clean sweep.' : srScore + ' / 10 this round.';
+      $('sr-fb').innerHTML = 'Rule of thumb: <b>order or positions</b> → ArrayList. <b>Look something up by a key</b> → HashMap. <b>Only "is it in here?"</b> → HashSet.';
+      document.querySelectorAll('[data-pick]').forEach(b => { b.disabled = true; b.className = 'pick'; });
+      const btn = $('sr-next'); btn.textContent = 'Play again'; btn.hidden = false;
+      answered = false;
+      return;
+    }
+    pos++; answered = false; drawCard();
+    $('sr-fb').textContent = 'Next one.';
+  }
+  document.querySelectorAll('[data-pick]').forEach(b => b.addEventListener('click', () => pick(+b.dataset.pick)));
+  $('sr-next').addEventListener('click', () => { if (pos >= 10) newRound(); else next(); });
+  const sr = $('sr');
+  document.addEventListener('keydown', (e) => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (!(sr.matches(':hover') || sr.contains(document.activeElement))) return;
+    if (['1', '2', '3'].includes(e.key)) { e.preventDefault(); pick(+e.key - 1); }
+    else if (e.key === 'Enter' && document.activeElement !== $('sr-next') && !$('sr-next').hidden) { e.preventDefault(); $('sr-next').click(); }
+  });
+  newRound();
+
+  // ----- part 5: loops -----
+  $('o-code').innerHTML = H([
+    'for (int n : nums) {                     // index 0 first, in list order',
+    '    System.out.println(n);',
+    '}',
+    '',
+    'for (String name : ages.keySet()) {      // every key, in no promised order',
+    '    System.out.println(name + " is " + ages.get(name));',
+    '}',
+    '',
+    'for (Map.Entry<String, Integer> e : ages.entrySet()) {   // key and value together',
+    '    System.out.println(e.getKey() + " is " + e.getValue());',
+    '}',
+    '',
+    'for (String colour : seen) {             // no promised order either',
+    '    System.out.println(colour);',
+    '}'].join('\n'));
+
+  // ----- hints -----
+  const hintSets = [
+    ['ListBasics', 'evens', [
+      'Start with an empty list: <code>List&lt;Integer&gt; out = new ArrayList&lt;&gt;();</code>, and add <code>import java.util.ArrayList;</code> at the top of the file.',
+      'Loop over <code>nums</code> with a for-each. A number is even when <code>n % 2 == 0</code>, and that works for negatives and 0 too.',
+      '<code>out.add(n)</code> for each even one, then <code>return out;</code>. The int goes into the list as an Integer by itself.'
+    ]],
+    ['ListBasics', 'reversed', [
+      'Make a new list and leave <code>words</code> alone. The test checks that the original is untouched.',
+      'Loop over the indexes backwards: start at <code>words.size() - 1</code> and go down to 0.',
+      '<code>out.add(words.get(i));</code> inside that loop.'
+    ]],
+    ['ListBasics', 'removeAll', [
+      'Don\'t remove inside a for-each over the same list: Java throws <code>ConcurrentModificationException</code>. Use an index loop.',
+      'Remember the playground: <code>list.remove(value)</code> with an <code>int</code> removes the box at that <em>index</em>. <code>list.remove(i)</code> inside an index loop is the version you want.',
+      'Removing box <code>i</code> shifts everything after it one place left. If you then do <code>i++</code>, you skip the value that just slid into box <code>i</code>. Loop from the end down to 0 and the shifting never gets in your way.',
+      'Comparing is fine as <code>list.get(i) == value</code>: <code>value</code> is an <code>int</code>, so Java unwraps the Integer before comparing.'
+    ]],
+    ['WordCount', 'count', [
+      'Make an empty <code>HashMap&lt;String, Integer&gt;</code> and import it. For each word, its new count is its old count plus 1.',
+      'A word you haven\'t seen yet has no old count: <code>get</code> returns <code>null</code>, and <code>null + 1</code> crashes. <code>counts.getOrDefault(w, 0)</code> gives 0 instead.',
+      '<code>counts.put(w, counts.getOrDefault(w, 0) + 1);</code> works for new words and old ones, because <code>put</code> on an existing key overwrites it.'
+    ]],
+    ['WordCount', 'mostCommon', [
+      'Call your own <code>count(words)</code> first, so you have every word\'s count.',
+      'The map has no useful order, so looping over the map can\'t tell you which word came first. Loop over the <code>words</code> array instead.',
+      'Start with <code>String best = words[0];</code>. For each word, if its count is <em>strictly bigger</em> than best\'s count, it becomes the new best. "Strictly bigger" is what keeps the earlier word on a tie.'
+    ]],
+    ['ContainsDuplicate', 'containsDuplicate', [
+      'Walk through <code>nums</code> once. At each number, the question is "have I seen this one before?" Which of today\'s three collections answers that question in one look?',
+      'Keep a <code>HashSet&lt;Integer&gt;</code> of the numbers you\'ve seen so far. If it already contains <code>n</code>, return true. Otherwise add <code>n</code> and keep going. If the loop finishes, return false.',
+      'Shortcut: the playground showed that <code>add</code> returns false when the item was already there. So <code>if (!seen.add(n)) return true;</code> does the check and the add in one go.',
+      'If <code>bigInputIsFast</code> fails, you\'re using a list\'s <code>contains</code> or a loop inside a loop. Both look at every number for every number: 200,000 × 200,000 is 40 billion looks.'
+    ]]
+  ];
+  const hintsEl = $('hints');
+  const opened = store.get('hints') || {};
+  let lastGroup = '';
+  hintSets.forEach(([group, name, list]) => {
+    if (group !== lastGroup) { const h = document.createElement('div'); h.className = 'hint-group'; h.textContent = group + '.java'; hintsEl.appendChild(h); lastGroup = group; }
+    const key = group + ':' + name;
+    const box = document.createElement('div'); box.className = 'hint-set';
+    box.innerHTML = '<header><code></code><button class="btn" type="button"></button></header><ol class="hint-list"></ol>';
+    box.querySelector('code').textContent = name;
+    const btn = box.querySelector('button'), ol = box.querySelector('ol');
+    let shown = opened[key] || 0;
+    const render = () => {
+      ol.innerHTML = '';
+      list.slice(0, shown).forEach(h => { const li = document.createElement('li'); li.innerHTML = h; ol.appendChild(li); });
+      btn.textContent = shown === 0 ? 'Show hint 1' : shown < list.length ? 'Next hint (' + (shown + 1) + '/' + list.length + ')' : 'All hints shown';
+      btn.disabled = shown >= list.length;
+    };
+    btn.addEventListener('click', () => { shown++; opened[key] = shown; store.set('hints', opened); render(); });
+    render(); hintsEl.appendChild(box);
+  });
+
+  // ----- quiz -----
+  const quiz = [
+    ['<code>nums</code> is a <code>List&lt;Integer&gt;</code> holding <code>[1, 2, 3]</code>. After <code>nums.remove(1);</code> what\'s left?',
+      ['[2, 3]', '[1, 3]', '[1, 2]', 'Compile error'], 1,
+      'With an <code>int</code>, <code>remove</code> means "the box at this index". Box 1 holds 2, so 2 goes. To remove the value 1 you\'d write <code>nums.remove(Integer.valueOf(1))</code>.'],
+    ['<code>m.put("a", 1); m.put("a", 2);</code> What are <code>m.size()</code> and <code>m.get("a")</code>?',
+      ['2 and 1', '2 and 2', '1 and 1', '1 and 2'], 3,
+      'A key can be in a map only once. The second <code>put</code> replaces the value, so there\'s one entry, and it holds 2.'],
+    ['<code>Set&lt;String&gt; s = new HashSet&lt;&gt;(); s.add("x");</code> What does <code>System.out.println(s.add("x"));</code> print?',
+      ['true', 'false', '[x, x]', 'It throws an exception'], 1,
+      '"x" is already there, so it isn\'t added again, and <code>add</code> returns false to say so. No error: bouncing off is normal.'],
+    ['You put <code>"ada"</code>, <code>"lin"</code> and <code>"eve"</code> into a HashMap, in that order. In what order does <code>for (String k : map.keySet())</code> visit them?',
+      ['The order you put them in', 'Alphabetical order', 'The reverse of the order you put them in', 'No promised order'], 3,
+      'A HashMap keeps no order you can count on. (This one happens to give lin, eve, ada.) If you need insertion order, loop over the original array, or look up <code>LinkedHashMap</code> another day.']
+  ];
+  const quizEl = $('quiz');
+  const answeredQ = store.get('quiz') || {};
+  let right = 0;
+  quiz.forEach(([q, opts, ans, why], qi) => {
+    const box = document.createElement('div'); box.className = 'q';
+    box.innerHTML = '<p><b>' + (qi + 1) + '.</b> ' + q + '</p><div class="opts"></div><p class="explain" hidden></p>';
+    const optsEl = box.querySelector('.opts'), ex = box.querySelector('.explain');
+    const buttons = opts.map((o, oi) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'opt'; b.textContent = o;
+      if (/^[\d[]|^true|^false/i.test(o)) b.style.fontFamily = 'var(--mono)';
+      b.addEventListener('click', () => choose(oi)); optsEl.appendChild(b); return b;
+    });
+    function choose(oi, silent) {
+      buttons.forEach((b, k) => { b.disabled = true; if (k === ans) b.classList.add('right'); if (k === oi && oi !== ans) b.classList.add('wrong'); });
+      ex.hidden = false;
+      ex.innerHTML = (oi === ans ? '<b style="color:var(--good)">Right.</b> ' : '<b style="color:var(--bad)">Not quite.</b> ') + why;
+      if (oi === ans) right++;
+      if (!silent) { answeredQ[qi] = oi; store.set('quiz', answeredQ); }
+      $('score').textContent = right + ' / ' + quiz.length;
+    }
+    if (answeredQ[qi] !== undefined && answeredQ[qi] !== null) choose(answeredQ[qi], true);
+    quizEl.appendChild(box);
+  });
+})();
+</script>
